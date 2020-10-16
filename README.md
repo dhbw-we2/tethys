@@ -1,16 +1,16 @@
-#MealOMat
+# MealOMat
 eine WebApp zur automatisierten Mahlzeit Planung
 
-####Funktionalität:
+#### Funktionalität:
  - Anmeldeformular
  - Übersichtskalender
  - Kalorienberechnung
  - Einkaufslistenerstellung
  - Rezept- und Zutatenverwaltung
 
-####Zielgruppe:
+#### Zielgruppe:
  Jeder, der/die einen Haushalt führt oder den
  Überblick über seine Kalorieneinnahme behalten will
 
-####Mehrwert:
+#### Mehrwert:
 Einfache, zentrale, intuitive, plattformunabhängige, innovative Einkaufs- und Mahlzeitplanung
