@@ -4,8 +4,7 @@ const routes = [
     path: '/',
     component: () => import('layouts/MainLayout.vue'),
     children: [
-      { path: '', component: () => import('pages/PageHome.vue') },
-      { path: '/calender', component: () => import('pages/PageCalender.vue') },
+      { path: '/', component: () => import('pages/PageCalender.vue') },
       { path: '/shoppinglist', component: () => import('pages/PageShoppinglist.vue') },
       { path: '/changemeal', component: () => import('pages/PageChangeMeal.vue') },
       { path: '/profile', component: () => import('pages/PageProfile.vue') }

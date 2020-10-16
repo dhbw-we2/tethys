@@ -1,14 +1,23 @@
 <template>
-  <q-layout view="lHh Lpr lFf">
+  <q-layout view="lHr LpR lFr">
     <q-header
       class="bg-white text-grey-10"
       bordered
     >
-      <q-toolbar class="constrain">
+      <q-toolbar class="constrain float float-left">
         <q-btn
-          to="/calender"
+          to="/"
           class="large-screen-only q-mr-sm"
           icon="eva-calendar-outline"
+          size="18px"
+          flat
+          round
+          dense
+        />
+        <q-btn
+          to="/shoppinglist"
+          class="large-screen-only q-mr-sm"
+          icon="eva-file-text-outline"
           size="18px"
           flat
           round
@@ -34,25 +43,13 @@
       </q-toolbar>
     </q-header>
 
-    <q-footer
-      class="bg-white small-screen-only"
-      bordered
-    >
-      <q-tabs
-        class="text-grey-10"
-        active-color="primary"
-        indicator-color="transparent"
-      >
-        <q-route-tab
-          to="/"
-          icon="eva-home-outline"
-        />
-        <q-route-tab
-          to="/calender"
-          icon="eva-camera-outline"
-        />
-      </q-tabs>
-    </q-footer>
+    <q-drawer show-if-above v-model="left" side="left" bordered>
+      <!-- drawer content -->
+    </q-drawer>
+
+    <q-drawer show-if-above v-model="right" side="right" bordered>
+      <!-- drawer content -->
+    </q-drawer>
 
     <q-page-container>
       <router-view />
