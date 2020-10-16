@@ -5,7 +5,10 @@ const routes = [
     component: () => import('layouts/MainLayout.vue'),
     children: [
       { path: '', component: () => import('pages/PageHome.vue') },
-      { path: '/camera', component: () => import('pages/PageCamera.vue') }
+      { path: '/calender', component: () => import('pages/PageCalender.vue') },
+      { path: '/shoppinglist', component: () => import('pages/PageShoppinglist.vue') },
+      { path: '/changemeal', component: () => import('pages/PageChangeMeal.vue') },
+      { path: '/profile', component: () => import('pages/PageProfile.vue') }
     ]
   }
 ]

@@ -6,9 +6,9 @@
     >
       <q-toolbar class="constrain">
         <q-btn
-          to="/camera"
+          to="/calender"
           class="large-screen-only q-mr-sm"
-          icon="eva-camera-outline"
+          icon="eva-calendar-outline"
           size="18px"
           flat
           round
@@ -19,13 +19,13 @@
           vertical
           spaced
         />
-        <q-toolbar-title class="text-grand-hotel text-bold">
-          Quasagram
+        <q-toolbar-title class="text-roboto text-bold">
+          Meal-O-Mat
         </q-toolbar-title>
         <q-btn
-          to="/"
+          to="/profile"
           class="large-screen-only"
-          icon="eva-home-outline"
+          icon="eva-person-outline"
           size="18px"
           flat
           round
@@ -48,7 +48,7 @@
           icon="eva-home-outline"
         />
         <q-route-tab
-          to="/camera"
+          to="/calender"
           icon="eva-camera-outline"
         />
       </q-tabs>
@@ -66,7 +66,7 @@ export default {
 
   data () {
     return {
-      
+
     }
   }
 }
