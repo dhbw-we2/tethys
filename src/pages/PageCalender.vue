@@ -127,7 +127,6 @@ export default {
           }
         ],
         5: [
-          {
             time: 'Frühstück',
             avatar: 'https://www.verival.at/blog/wp-content/uploads/2020/03/Verival-Muesli-Grundrezept-500x375.jpg',
             desc: 'Müsli'
@@ -190,7 +189,7 @@ export default {
       }
     }
   },
-
+  
   methods: {
     getAgenda (day) {
       return this.agenda[parseInt(day.weekday, 10)]
@@ -204,3 +203,5 @@ export default {
   }
 }
 </script>
+
+
