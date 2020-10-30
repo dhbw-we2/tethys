@@ -1,3 +1,6 @@
+import db from '/db'
+
+
 <template>
   <q-layout view="lHr LpR lFr" class="row justify-center">
     <div style="max-width: 1280px; width: 100%;" >
@@ -24,13 +27,13 @@
               <div
                 :key="timestamp.date + agenda.time"
                 :label="agenda.time"
-                class="justify-start q-ma-sm shadow-5 bg-grey-5"
+                class="justify-start q-ma-sm shadow-5 bg-grey-4"
               >
                 <!-- Im Folgenden die Direction von /changemeal auf das echt hinterlegte Essen leiten -->
                 <q-btn push to="/changemeal" v-if="agenda.avatar" class="row justify-center" style="margin-top: 45px; width: 100%;">
                   <div>
                     <q-avatar style="margin-top: -35px; margin-bottom: 10px; font-size: 60px; max-height: 50px;">
-                      <img :src="agenda.avatar" style="border: #9e9e9e solid 2px;" alt="Bild von diesem Essen">
+                      <img :src="agenda.avatar" style="border: rgba(0,0,0,0.4) solid 2px;" alt="Bild von diesem Essen">
                     </q-avatar>
                   </div>
                   <div class="col-12 q-px-sm">
@@ -127,6 +130,7 @@ export default {
           }
         ],
         5: [
+          {
             time: 'Frühstück',
             avatar: 'https://www.verival.at/blog/wp-content/uploads/2020/03/Verival-Muesli-Grundrezept-500x375.jpg',
             desc: 'Müsli'
@@ -189,7 +193,7 @@ export default {
       }
     }
   },
-  
+
   methods: {
     getAgenda (day) {
       return this.agenda[parseInt(day.weekday, 10)]
