@@ -34,3 +34,5 @@ yarn-error.log*
 
 # Firebase Zugriff
 src/router/db.js
+
+.quasar.env.json

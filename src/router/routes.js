@@ -7,7 +7,28 @@ const routes = [
       { path: '/', component: () => import('pages/PageCalender.vue') },
       { path: '/shoppinglist', component: () => import('pages/PageShoppinglist.vue') },
       { path: '/changemeal', component: () => import('pages/PageChangeMeal.vue') },
-      { path: '/profile', component: () => import('pages/PageProfile.vue') }
+      { path: '/profile', component: () => import('pages/PageProfile.vue') },
+      {
+        path: '/auth',
+        component: () => import('layouts/MainLayout.vue'),
+        children: [
+          {
+            path: 'forgotPassword',
+            name: 'ForgotPassword',
+            component: () => import('pages/ForgotPasswordPage.vue')
+          },
+          {
+            path: 'login',
+            name: 'Login',
+            component: () => import('pages/AuthPage.vue')
+          },
+          {
+            path: 'register',
+            name: 'Register',
+            component: () => import('pages/AuthPage.vue')
+          }
+        ]
+      }
     ]
   }
 ]

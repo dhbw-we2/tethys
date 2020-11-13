@@ -1,3 +1,7 @@
 {
-  "@quasar/qcalendar": {}
+  "@quasar/qcalendar": {},
+  "@quasar/qenv": {
+    "common_root_object": "none",
+    "add_qenv_to_gitignore": true
+  }
 }

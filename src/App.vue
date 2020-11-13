@@ -5,6 +5,7 @@
 </template>
 
 <script>
+/*
 import db from './router/db'
 export default {
   name: 'App',
@@ -22,4 +23,5 @@ export default {
     }
   }
 }
+*/
 </script>

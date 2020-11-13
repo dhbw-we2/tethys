@@ -1,7 +1,7 @@
 <template>
   <q-page class="row justify-center q-pa-md">
     <q-list>
-      <q-list-header><h3>Einkaufsliste</h3></q-list-header>
+      <h3>Einkaufsliste</h3>
       <q-item class="q-px-xl q-mx-xl">
         <q-item-section class="q-pr-xl">
           <q-item-label class="text-body1">Bananen</q-item-label>
