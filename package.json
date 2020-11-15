@@ -1,12 +1,15 @@
 {
   "name": "quasagram",
   "version": "0.0.1",
-  "description": "A Quasar Framework app",
-  "productName": "Quasagram",
-  "author": "Danny Connell",
+  "description": "A calender to plan your meals",
+  "productName": "Meal-O-Mat",
+  "author": "Team Tethys",
   "private": true,
   "scripts": {
-    "test": "echo \"No test specified\" && exit 0"
+    "test": "echo \"No test specified\" && exit 0",
+    "dev": "cross-env QENV=development quasar dev",
+    "build": "cross-env QENV=development quasar build",
+    "deploy": "firebase use default && cross-env QENV=development quasar build && firebase deploy"
   },
   "dependencies": {
     "@quasar/extras": "^1.0.0",
@@ -17,7 +20,8 @@
     "vuex": "^4.0.0-rc.1"
   },
   "devDependencies": {
-    "@quasar/app": "^2.1.6"
+    "@quasar/app": "^2.1.6",
+    "cross-env": "^7.0.2"
   },
   "engines": {
     "node": ">= 10.18.1",
