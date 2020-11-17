@@ -5,7 +5,18 @@ const routes = [
     component: () => import('layouts/MainLayout.vue'),
     children: [
       { path: '', component: () => import('pages/PageHome.vue') },
-      { path: '/camera', component: () => import('pages/PageCamera.vue') }
+      { path: '/camera', component: () => import('pages/PageCamera.vue') },
+      {
+        path: '/auth',
+        component: () => import('layouts/MainLayout.vue'),
+        children: [
+          {
+            path: 'forgotPassword',
+            name: 'ForgotPassword',
+            component: () => import('pages/ForgotPassword.vue')
+          }
+        ]
+      }
     ]
   }
 ]
