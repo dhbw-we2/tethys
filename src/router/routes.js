@@ -8,7 +8,7 @@ const routes = [
       { path: '/camera', component: () => import('pages/PageCamera.vue') },
       {
         path: '/auth',
-        component: () => import('layouts/MainLayout.vue'),
+        component: () => import('pages/Auth.vue'),
         children: [
           {
             path: 'forgotPassword',
