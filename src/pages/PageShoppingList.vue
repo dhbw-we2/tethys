@@ -33,42 +33,29 @@ export default {
     }
   },
 
-  methods: {
-    getUserRezepte()
-    {
-      const currentTime = Math.floor(Date.now() / 1000);
-
-      db.collection('Nutzer').doc("p6it388BP6p236oqniWj").get().then(
-        doc => {
-          doc.data().MealCalendar.forEach(mealRef => {
-            if(mealRef.Date.seconds > currentTime)
-            {
-              db.collection('Rezepte').doc(mealRef.Rezept.id).get().then(
-                mealObj => {
-                  console.log(mealObj.data())
-                  this.meals.push(mealObj.data());
-                  console.log("Added Meal to local store: " + mealObj.id);
-                })
-            }
-          })
-        }
-      )
-    },
-
-    getRezeptZutaten()
-    {
-      this.meals.forEach(meal => {
-        console.log(meal);
-
-
-      })
-    }
-  },
-
   created() {
-    this.getUserRezepte()
-    this.getRezeptZutaten()
+    //getPlannedMeals
+    const currentTime = Math.floor(Date.now() / 1000);
 
+    db.collection('Nutzer').doc("p6it388BP6p236oqniWj").get().then(
+      doc => {
+        doc.data().MealCalendar.forEach(mealRef => {
+          if(mealRef.Date.seconds > currentTime)
+          {
+            db.collection('Rezepte').doc(mealRef.Rezept.id).get().then(mealObj => {
+                mealObj.data().Zutaten.forEach(zutatRef => {
+                  db.collection('Zutaten').doc(zutatRef.id).get().then(zutatObj => {
+                    this.zutaten.push(zutatObj.data())
+                    //console.log(zutatObj.data())
+                  })
+                })
+              })
+          }
+        })
+      }
+    )
+
+    /*
     let zutatenDB = db.collection('Zutaten')
     const snapshot = zutatenDB.get().then(snapshot => {
       snapshot.forEach(doc => {
@@ -76,7 +63,10 @@ export default {
         this.zutaten.push(doc.data())
       })
     })
+    */
   }
+
+
 }
 </script>
 
