@@ -8,6 +8,7 @@
 import db from './router/db'
 export default {
   name: 'App',
+  /*
   created(){
     //hiermit greifen wir nur auf ein konkretes Dokument zu
     let docs = db.collection('Rezepte')
@@ -21,5 +22,6 @@ export default {
       return
     }
   }
+  */
 }
 </script>
