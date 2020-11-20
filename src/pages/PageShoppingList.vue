@@ -1,17 +1,19 @@
 <template>
   <q-page class="flex flex-top-left">
+    <!--{{zutaten}}-->
+    <!--{{meals}}-->
     <q-list class="q-pl-xl">
       <q-list-header><h3>Einkaufsliste</h3></q-list-header>
       <q-item v-for="z in zutaten">
         <q-item class="q-px-xl">
           <q-item-section>
-            <q-item-label><h6>{{ z.DisplayName }}</h6></q-item-label>
-            <q-item-label caption>{{ z.PortionInGramm }}</q-item-label>
-          </q-item-section>
-
-          <q-item-section side bottom>
             <q-item-label caption>{{ z.KalorienPro100g }}</q-item-label>
             <q-icon name="local_fire_department" color="orange"/>
+          </q-item-section>
+
+          <q-item-section>
+            <q-item-label><h6>{{ z.DisplayName }}</h6></q-item-label>
+            <q-item-label caption>{{ z.PortionInGramm }}</q-item-label>
           </q-item-section>
         </q-item>
       </q-item>
@@ -27,16 +29,50 @@ export default {
   data() {
     return {
       zutaten:[],
-      zubereitung:"",
-      bildULR:""
+      meals:[]
+    }
+  },
+
+  methods: {
+    getUserRezepte()
+    {
+      const currentTime = Math.floor(Date.now() / 1000);
+
+      db.collection('Nutzer').doc("p6it388BP6p236oqniWj").get().then(
+        doc => {
+          doc.data().MealCalendar.forEach(mealRef => {
+            if(mealRef.Date.seconds > currentTime)
+            {
+              db.collection('Rezepte').doc(mealRef.Rezept.id).get().then(
+                mealObj => {
+                  console.log(mealObj.data())
+                  this.meals.push(mealObj.data());
+                  console.log("Added Meal to local store: " + mealObj.id);
+                })
+            }
+          })
+        }
+      )
+    },
+
+    getRezeptZutaten()
+    {
+      this.meals.forEach(meal => {
+        console.log(meal);
+
+
+      })
     }
   },
 
   created() {
+    this.getUserRezepte()
+    this.getRezeptZutaten()
+
     let zutatenDB = db.collection('Zutaten')
     const snapshot = zutatenDB.get().then(snapshot => {
       snapshot.forEach(doc => {
-        console.log(doc.id, '=>', doc.data())
+        //console.log(doc.id, '=>', doc.data())
         this.zutaten.push(doc.data())
       })
     })
