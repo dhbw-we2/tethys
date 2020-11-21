@@ -54,16 +54,6 @@ export default {
         })
       }
     )
-
-    /*
-    let zutatenDB = db.collection('Zutaten')
-    const snapshot = zutatenDB.get().then(snapshot => {
-      snapshot.forEach(doc => {
-        //console.log(doc.id, '=>', doc.data())
-        this.zutaten.push(doc.data())
-      })
-    })
-    */
   }
 
 
