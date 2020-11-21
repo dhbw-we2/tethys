@@ -1,6 +1,31 @@
 <template>
   <q-page class="row justify-center q-pa-md">
     <h5 align="center">Profile</h5>
+
+    <div class="container">
+      <div class="row">
+        <div class="col s12 m8 offset-m2">
+          <div class="login card-panel green white-text center">
+            <h3>Login</h3>
+            <form action="index.html">
+              <div class="input-field">
+                <i class="material-icons prefix">email</i>
+                <input type="email" id="email" v-model="email">
+                <label class="white-text" for="email">Email Address</label>
+              </div>
+              <div class="input-field">
+                <i class="material-icons prefix">lock</i>
+                <input type="password" id="password" v-model="password">
+                <label class="white-text" for="password">Password</label>
+              </div>
+              <button v-on:click="login" class="btn btn-large btn-extended grey lighten-4 black-text">Login</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
     <div class="q-pa-md" style="width: 700px">
       <q-list bordered class="rounded-borders">
         <q-expansion-item
@@ -28,7 +53,7 @@
               <!--https://quasar.dev/vue-components/table-->
               <q-table
                 title="Tägliche Kalorien"
-                :data="data"
+                :data="caldata"
                 :columns="columns"
                 row-key="name"
                 light
@@ -174,7 +199,8 @@
 </template>
 
 <script>
-import { date } from 'quasar'
+import { date } from 'quasar';
+import firebase from 'firebase';
 export default {
   name: 'PageProfile',
   data () {
@@ -194,7 +220,7 @@ export default {
         { name: 'Kohlenhydrate', label: 'Carbs (g)', field: 'carbs', sortable: false },
         { name: 'Eiweiß', label: 'Protein (g)', field: 'protein', sortable: false }
       ],
-      data: [
+      caldata: [
         {
           name: 'Morgens',
           calories: 800,
@@ -246,6 +272,21 @@ export default {
         })
         this.loadingPosts = false
       })
+    },
+    login: function(e) {
+      firebase
+        .auth()
+        .signInWithEmailAndPassword(this.email, this.password)
+        .then(
+          user => {
+            alert(`You are logged in as ${user.email}`);
+            this.$router.go({path: this.$routes.path});
+          },
+          err => {
+            alert(err.message);
+          }
+        );
+      e.preventDefault();
     }
   },
   filters: {
@@ -257,6 +298,8 @@ export default {
     this.getPosts()
   }
 }
+
+
 </script>
 
 <style lang="sass">
