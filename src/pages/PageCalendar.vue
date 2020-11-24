@@ -81,16 +81,15 @@ import db from '/db'
             </q-card-section>
 
             <q-card-section class="row items-center">
-              <q-select outlined v-model="newMealRezept" :options="rezepte">
+              <q-select outlined v-model="newMeal" :options="rezepte">
 
               </q-select>
             </q-card-section>
 
-
             <!-- Notice v-close-popup -->
             <q-card-actions align="right">
               <q-btn flat label="Close" color="primary" v-close-popup />
-              <q-btn flat label="Add Meal" color="primary" v-close-popup />
+              <q-btn flat label="Add Meal" color="primary" @click="AddMealToCalendar" v-close-popup />
             </q-card-actions>
           </q-card>
         </q-dialog>
@@ -108,7 +107,7 @@ export default {
   data () {
     return {
       newMealDate: 0,
-      newMealRezept:{},
+      newMeal: null,
       dialogShowMeal: false,
       dialogAddMeal: false,
       currentWeekTime:0,
@@ -127,6 +126,19 @@ export default {
       this.$refs.calendar.next()
       this.currentWeekTime += (7*24*60*60*1000)
       this.getCurrentWeekMeals()
+    },
+
+    AddMealToCalendar() {
+      var UserRef = db.collection('Nutzer').doc("p6it388BP6p236oqniWj")
+      var RezeptRef = db.collection('Rezepte').doc('d6yklg4TTWikuOXyNTME')
+
+      var newMealObj = { Date: this.newMealDate, Rezept: RezeptRef}
+      console.log(newMealObj)
+
+      UserRef.update({
+        MealCalendar: arrayUnion(newMealObj)
+      })
+      console.log("danach")
     },
 
     calendarPrev () {
