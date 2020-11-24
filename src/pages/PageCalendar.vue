@@ -102,6 +102,7 @@ import db from '/db'
 
 <script>
 import db from "src/router/db";
+import firebase from "firebase";
 
 export default {
   data () {
@@ -132,13 +133,17 @@ export default {
       var UserRef = db.collection('Nutzer').doc("p6it388BP6p236oqniWj")
       var RezeptRef = db.collection('Rezepte').doc('d6yklg4TTWikuOXyNTME')
 
-      var newMealObj = { Date: this.newMealDate, Rezept: RezeptRef}
+      var newMealObj = { Date: new Date(this.newMealDate), Rezept: RezeptRef}
+      /*
       console.log(newMealObj)
+      UserRef.get().then(profil => {
+        console.log(profil.data())
+      })
+      */
 
       UserRef.update({
-        MealCalendar: arrayUnion(newMealObj)
+        MealCalendar: firebase.firestore.FieldValue.arrayUnion(newMealObj)
       })
-      console.log("danach")
     },
 
     calendarPrev () {
