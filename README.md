@@ -1,8 +1,7 @@
-# MealOMat
-eine WebApp zur automatisierten Mahlzeit Planung
+# Meal-O-Mat
+eine WebApp zur Mahlzeiten- und Einkaufsplanung.
 
 #### Funktionalität:
- - Anmeldeformular
  - Übersichtskalender
  - Kalorienberechnung
  - Einkaufslistenerstellung
@@ -10,7 +9,7 @@ eine WebApp zur automatisierten Mahlzeit Planung
 
 #### Zielgruppe:
  Jeder, der/die einen Haushalt führt oder den
- Überblick über seine Kalorieneinnahme behalten will
+ Überblick über seine Kalorienzufuhr behalten will.
 
 #### Mehrwert:
-Einfache, zentrale, intuitive, plattformunabhängige, innovative Einkaufs- und Mahlzeitplanung
+Einfache, zentrale, intuitive, plattformunabhängige, innovative Einkaufs- und Mahlzeitplanung.
