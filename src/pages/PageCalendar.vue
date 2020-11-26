@@ -29,7 +29,7 @@ import db from '/db'
                 :label="agenda.DisplayName"
                 class="justify-start q-ma-sm shadow-5 bg-grey-4"
               >
-                <q-btn class="row justify-center" style="margin-top: 45px; width: 100%;" @click="dialogShowMeal = true">
+                <q-btn class="row justify-center" style="margin-top: 45px; width: 100%;" @click="dialogShowMealObject = agenda; dialogShowMeal = true">
                   <div>
                     <q-avatar style="margin-top: -35px; margin-bottom: 10px; font-size: 60px; max-height: 50px;">
                       <img :src="agenda.Picture" style="border: rgba(0,0,0,0.4) solid 2px;" alt="Bild von diesem Essen">
@@ -39,42 +39,42 @@ import db from '/db'
                     <strong>{{ agenda.DisplayName }}</strong>
                   </div>
                 </q-btn>
-
-                <q-dialog v-model="dialogShowMeal" persistent>
-                  <q-card>
-                    <q-card-section class="row items-center q-mx-xl">
-                      <strong>{{ agenda.DisplayName }}</strong>
-                    </q-card-section>
-
-                    <q-card-section class="row items-center">
-                      Geplant am: {{ agenda.Time }}
-                    </q-card-section>
-                    <q-card-section class="row items-center">
-                      Kalorien: {{ agenda.Calorie }}
-                    </q-card-section>
-
-                    <q-card-section class="row items-center">
-                      ID: {{ agenda.Id }}
-                    </q-card-section>
-
-                    <!-- Notice v-close-popup -->
-                    <q-card-actions align="right">
-                      <q-btn flat label="Entfernen" color="primary" @click="RemoveMealFromCalendar(agenda.Id)" v-close-popup />
-                      <q-btn flat label="Schließen" color="primary" v-close-popup />
-                    </q-card-actions>
-                  </q-card>
-                </q-dialog>
               </div>
             </template>
           </template>
         </q-calendar>
+
+        <q-dialog v-model="dialogShowMeal">
+          <q-card>
+            <q-card-section class="row items-center q-mx-xl">
+              <strong>{{ dialogShowMealObject.DisplayName }}</strong>
+            </q-card-section>
+
+            <q-card-section class="row items-center">
+              Geplant am: {{ dialogShowMealObject.Time }}
+            </q-card-section>
+            <q-card-section class="row items-center">
+              Kalorien: {{ dialogShowMealObject.Calorie }}
+            </q-card-section>
+
+            <q-card-section class="row items-center">
+              ID: {{ dialogShowMealObject.Id }}
+            </q-card-section>
+
+            <!-- Notice v-close-popup -->
+            <q-card-actions align="right">
+              <q-btn flat label="Entfernen" color="primary" @click="RemoveMealFromCalendar(dialogShowMealObject.Id)" v-close-popup />
+              <q-btn flat label="Schließen" color="primary" v-close-popup />
+            </q-card-actions>
+          </q-card>
+        </q-dialog>
 
         <q-btn round color="blue" icon="add" class="float-right q-mr-xl q-mt-xl" size="big" @click="dialogAddMeal = true"/>
 
         <q-dialog v-model="dialogAddMeal" persistent>
           <q-card>
             <q-card-section class="row items-center">
-              <strong>Plane ein neues Gericht:</strong>
+              <strong>Plane ein Gericht:</strong>
             </q-card-section>
 
             <q-card-section class="row items-center">
@@ -114,6 +114,7 @@ export default {
       newMeal: null,
       dialogShowMeal: false,
       dialogAddMeal: false,
+      dialogShowMealObject: { Displayname: "", Time: 0, Calorie: 0, Id: 0 },
       currentWeekTime:0,
       selectedDate: '',
       agenda: { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] },
@@ -143,7 +144,7 @@ export default {
     AddMealToCalendar() {
       //TODO: Dynamisches Rezept
       var UserRef = db.collection('Nutzer').doc("p6it388BP6p236oqniWj")
-      var RezeptRef = db.collection('Rezepte').doc('d6yklg4TTWikuOXyNTME')
+      var RezeptRef = db.collection('Rezepte').doc(this.newMeal.id)
       var newMealObj = { Date: new Date(this.newMealDate), Rezept: RezeptRef, ID: this.getRandomID()}
       /*
       console.log(newMealObj)
@@ -217,7 +218,8 @@ export default {
     getAvailableRezepte(){
       db.collection('Rezepte').get().then(rezepte => {
         rezepte.forEach(rezept => {
-          this.rezepte.push({label: rezept.data().DisplayName, id: rezept.data().id})
+          console.log(rezept)
+          this.rezepte.push({label: rezept.data().DisplayName, id: rezept.id})
         })
       })
     },
