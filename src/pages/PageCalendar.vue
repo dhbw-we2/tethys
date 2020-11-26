@@ -26,38 +26,37 @@ import db from '/db'
             <template v-for="(agenda) in getAgenda(timestamp)">
               <div
                 :key="timestamp.date + agenda.time"
-                :label="agenda.time"
+                :label="agenda.DisplayName"
                 class="justify-start q-ma-sm shadow-5 bg-grey-4"
               >
-                <q-btn v-if="agenda.DisplayName" class="row justify-center" style="margin-top: 45px; width: 100%;" @click="dialogShowMeal = true">
+                <q-btn class="row justify-center" style="margin-top: 45px; width: 100%;" @click="dialogShowMeal = true">
                   <div>
                     <q-avatar style="margin-top: -35px; margin-bottom: 10px; font-size: 60px; max-height: 50px;">
-                      <img :src="agenda.picture" style="border: rgba(0,0,0,0.4) solid 2px;" alt="Bild von diesem Essen">
+                      <img :src="agenda.Picture" style="border: rgba(0,0,0,0.4) solid 2px;" alt="Bild von diesem Essen">
                     </q-avatar>
                   </div>
                   <div class="col-12 q-px-sm">
-                    <strong>{{ agenda.time }}</strong>
-                  </div>
-                  <div v-if="agenda.DisplayName" class="col-12 q-px-sm" style="font-size: 10px;">
-                    {{ agenda.DisplayName }}
+                    <strong>{{ agenda.DisplayName }}</strong>
                   </div>
                 </q-btn>
 
                 <q-dialog v-model="dialogShowMeal" persistent>
                   <q-card>
-                    <q-card-section class="row items-center">
-                      <h4>{{ agenda.DisplayName }}</h4>
+                    <q-card-section class="row items-center q-mx-xl">
+                      <strong>{{ agenda.DisplayName }}</strong>
                     </q-card-section>
 
                     <q-card-section class="row items-center">
-                      {{ agenda.Calorie }}
+                      Geplant am: {{ agenda.Time }}
                     </q-card-section>
-
+                    <q-card-section class="row items-center">
+                      Kalorien: {{ agenda.Calorie }}
+                    </q-card-section>
 
                     <!-- Notice v-close-popup -->
                     <q-card-actions align="right">
-                      <q-btn flat label="Delete Meal" color="primary" v-close-popup />
-                      <q-btn flat label="Close Popup" color="primary" v-close-popup />
+                      <q-btn flat label="Entfernen" color="primary" v-close-popup />
+                      <q-btn flat label="Schließen" color="primary" v-close-popup />
                     </q-card-actions>
                   </q-card>
                 </q-dialog>
@@ -71,7 +70,7 @@ import db from '/db'
         <q-dialog v-model="dialogAddMeal" persistent>
           <q-card>
             <q-card-section class="row items-center">
-              <h4>Add New Meal</h4>
+              <strong>Plane ein neues Gericht:</strong>
             </q-card-section>
 
             <q-card-section class="row items-center">
@@ -81,14 +80,14 @@ import db from '/db'
             </q-card-section>
 
             <q-card-section class="row items-center">
-              <q-select outlined v-model="newMeal" :options="rezepte">
+              <q-select outlined v-model="newMeal" :options="rezepte" map-options>
 
               </q-select>
             </q-card-section>
 
             <!-- Notice v-close-popup -->
             <q-card-actions align="right">
-              <q-btn flat label="Close" color="primary" v-close-popup />
+              <q-btn flat label="Close" color="primary" @click="RemoveMealFromCalendar" v-close-popup />
               <q-btn flat label="Add Meal" color="primary" @click="AddMealToCalendar" v-close-popup />
             </q-card-actions>
           </q-card>
@@ -126,13 +125,14 @@ export default {
     calendarNext () {
       this.$refs.calendar.next()
       this.currentWeekTime += (7*24*60*60*1000)
+      console.log(new Date(this.currentWeekTime))
       this.getCurrentWeekMeals()
     },
 
     AddMealToCalendar() {
+      //TODO: Dynamisches Rezept
       var UserRef = db.collection('Nutzer').doc("p6it388BP6p236oqniWj")
       var RezeptRef = db.collection('Rezepte').doc('d6yklg4TTWikuOXyNTME')
-
       var newMealObj = { Date: new Date(this.newMealDate), Rezept: RezeptRef}
       /*
       console.log(newMealObj)
@@ -143,6 +143,24 @@ export default {
 
       UserRef.update({
         MealCalendar: firebase.firestore.FieldValue.arrayUnion(newMealObj)
+      }).then(object => {
+        this.getCurrentWeekMeals()
+      })
+    },
+
+    RemoveMealFromCalendar() {
+      console.log("Remove called")
+      console.log()
+
+      var UserRef = db.collection('Nutzer').doc("p6it388BP6p236oqniWj")
+      var RezeptRef = db.collection('Rezepte').doc('d6yklg4TTWikuOXyNTME')
+      var newMealObj = { Date: new Date(this.newMealDate), Rezept: RezeptRef}
+      console.log(newMealObj)
+
+      UserRef.update({
+        //MealCalendar: firebase.firestore.FieldValue.arrayRemove(newMealObj)
+      }).then(object => {
+        this.getCurrentWeekMeals()
       })
     },
 
@@ -165,8 +183,7 @@ export default {
 
       db.collection('Nutzer').doc("p6it388BP6p236oqniWj").get().then(doc => {
         doc.data().MealCalendar.forEach(mealRef => {
-
-          if((mealRef.Date.seconds * 1000) >= (this.currentWeekTime) && (mealRef.Date.seconds * 1000) <= (this.currentWeekTime + (7*24*60*60*1000)))
+          if((mealRef.Date.seconds * 1000) >= (this.currentWeekTime) && (mealRef.Date.seconds * 1000) <= (this.currentWeekTime + (7*24*60*60*1000) - 1000))
           {
             db.collection('Rezepte').doc(mealRef.Rezept.id).get().then(mealObj => {
               mealObj.data().Zutaten.forEach(zutatRef => {
@@ -175,8 +192,14 @@ export default {
                 })
               })
 
-              let day = new Date(mealRef.Date.seconds * 1000).getDay();
-              var calendarObj = {time: '', picture: mealObj.data().bildURL, DisplayName: mealObj.data().DisplayName, Calorie: 0};
+              let date = new Date(mealRef.Date.seconds * 1000)
+              let day = date.getDay();
+              let calendarObj = {
+                Time: date.toLocaleDateString(),
+                Picture: mealObj.data().bildURL,
+                DisplayName: mealObj.data().DisplayName,
+                Calorie: 0
+              };
               this.agenda[day].push(calendarObj)
             })
           }
@@ -189,18 +212,26 @@ export default {
         rezepte.forEach(rezept => {
           this.rezepte.push({label: rezept.data().DisplayName, id: rezept.data().id})
         })
-
-        this.rezept = this.rezepte[0]
       })
-
-
     }
   },
 
   created() {
     this.currentWeekTime = Date.now();
-                                                    //Offset to Thursday        //Align to Monday
-    this.currentWeekTime -= (this.currentWeekTime % (7 * 24 * 60 * 60 * 1000) + (3 * 24 * 60 * 60 * 1000))
+    this.currentWeekTime += (24 * 60 * 60 * 1000) * 3
+    this.currentWeekTime -= (this.currentWeekTime % 1000) //Remove Milliseconds
+    this.currentWeekTime -= (new Date(this.currentWeekTime).getSeconds() * 1000) //Remove Seconds
+    this.currentWeekTime -= (new Date(this.currentWeekTime).getMinutes() * 60 * 1000) //Remove Minutes
+    this.currentWeekTime -= (new Date(this.currentWeekTime).getHours() * 60 * 60 * 1000) //Remove Hours
+
+    let day = new Date(this.currentWeekTime).getDay()
+    switch(day)
+    {
+      case 0: day = 7 //sunday = 0 remove 6 (+1) days to beginning of week
+      default: day -= 1; //monday = 1 (should not reduce)
+               this.currentWeekTime -= (day * 24 * 60 * 60 * 1000)
+               break;
+    }
     this.getCurrentWeekMeals()
     this.getAvailableRezepte()
   }

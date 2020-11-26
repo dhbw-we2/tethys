@@ -1,5 +1,5 @@
 <template>
-  <q-page class="flex flex-top-left">
+  <q-page class="items-center">
     <!--{{zutaten}}-->
     <!--{{meals}}-->
     <q-list class="q-pl-xl">
@@ -7,12 +7,12 @@
       <q-item v-for="z in zutaten">
         <q-item class="q-px-xl">
           <q-item-section>
-            <q-item-label caption>{{ z.KalorienPro100g }}</q-item-label>
+            <q-item-label caption>{{ z.KalorienPro100g }} kcal</q-item-label>
             <q-icon name="local_fire_department" color="orange"/>
           </q-item-section>
 
           <q-item-section>
-            <q-item-label><h6>{{ z.DisplayName }}</h6></q-item-label>
+            <q-item-label><strong>{{ z.DisplayName }}</strong></q-item-label>
             <q-item-label caption>{{ z.PortionInGramm }}</q-item-label>
           </q-item-section>
         </q-item>
@@ -59,19 +59,3 @@ export default {
 
 }
 </script>
-
-
-/*
-db.collection('posts').get()
-.then(posts => {
-if (!posts.empty) {
-posts.forEach((doc) => {
-this.posts.push(doc.data())
-})
-this.loadingPosts = false
-}
-}).catch(error => {
-this.$q.dialog({ title: error.code, message: error.message })
-this.loadingPosts = false
-})
-*/
