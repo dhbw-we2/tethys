@@ -25,7 +25,7 @@ import db from '/db'
           <template #day-body="{ timestamp }">
             <template v-for="(agenda) in getAgenda(timestamp)">
               <div
-                :key="timestamp.date + agenda.time"
+                :key="agenda.Id"
                 :label="agenda.DisplayName"
                 class="justify-start q-ma-sm shadow-5 bg-grey-4"
               >
@@ -53,9 +53,13 @@ import db from '/db'
                       Kalorien: {{ agenda.Calorie }}
                     </q-card-section>
 
+                    <q-card-section class="row items-center">
+                      ID: {{ agenda.Id }}
+                    </q-card-section>
+
                     <!-- Notice v-close-popup -->
                     <q-card-actions align="right">
-                      <q-btn flat label="Entfernen" color="primary" v-close-popup />
+                      <q-btn flat label="Entfernen" color="primary" @click="RemoveMealFromCalendar(agenda.Id)" v-close-popup />
                       <q-btn flat label="Schließen" color="primary" v-close-popup />
                     </q-card-actions>
                   </q-card>
@@ -87,7 +91,7 @@ import db from '/db'
 
             <!-- Notice v-close-popup -->
             <q-card-actions align="right">
-              <q-btn flat label="Close" color="primary" @click="RemoveMealFromCalendar" v-close-popup />
+              <q-btn flat label="Close" color="primary" v-close-popup />
               <q-btn flat label="Add Meal" color="primary" @click="AddMealToCalendar" v-close-popup />
             </q-card-actions>
           </q-card>
@@ -122,6 +126,13 @@ export default {
     getAgenda (day) {
       return this.agenda[parseInt(day.weekday, 10)]
     },
+
+    calendarPrev () {
+      this.$refs.calendar.prev()
+      this.currentWeekTime -= (7*24*60*60*1000)
+      this.getCurrentWeekMeals()
+    },
+
     calendarNext () {
       this.$refs.calendar.next()
       this.currentWeekTime += (7*24*60*60*1000)
@@ -133,7 +144,7 @@ export default {
       //TODO: Dynamisches Rezept
       var UserRef = db.collection('Nutzer').doc("p6it388BP6p236oqniWj")
       var RezeptRef = db.collection('Rezepte').doc('d6yklg4TTWikuOXyNTME')
-      var newMealObj = { Date: new Date(this.newMealDate), Rezept: RezeptRef}
+      var newMealObj = { Date: new Date(this.newMealDate), Rezept: RezeptRef, ID: this.getRandomID()}
       /*
       console.log(newMealObj)
       UserRef.get().then(profil => {
@@ -148,26 +159,21 @@ export default {
       })
     },
 
-    RemoveMealFromCalendar() {
-      console.log("Remove called")
-      console.log()
+    RemoveMealFromCalendar(id) {
+      let UserRef = db.collection('Nutzer').doc("p6it388BP6p236oqniWj")
 
-      var UserRef = db.collection('Nutzer').doc("p6it388BP6p236oqniWj")
-      var RezeptRef = db.collection('Rezepte').doc('d6yklg4TTWikuOXyNTME')
-      var newMealObj = { Date: new Date(this.newMealDate), Rezept: RezeptRef}
-      console.log(newMealObj)
-
-      UserRef.update({
-        //MealCalendar: firebase.firestore.FieldValue.arrayRemove(newMealObj)
-      }).then(object => {
-        this.getCurrentWeekMeals()
+      UserRef.get().then(object => {
+       object.data().MealCalendar.forEach(mealObj => {
+         if(mealObj.ID == id)
+         {
+           UserRef.update({
+             MealCalendar: firebase.firestore.FieldValue.arrayRemove(mealObj)
+           }).then(obj => {
+             this.getCurrentWeekMeals()
+           })
+         }
+       })
       })
-    },
-
-    calendarPrev () {
-      this.$refs.calendar.prev()
-      this.currentWeekTime -= (7*24*60*60*1000)
-      this.getCurrentWeekMeals()
     },
 
     getCurrentWeekMeals() {
@@ -198,7 +204,8 @@ export default {
                 Time: date.toLocaleDateString(),
                 Picture: mealObj.data().bildURL,
                 DisplayName: mealObj.data().DisplayName,
-                Calorie: 0
+                Calorie: 0,
+                Id: mealRef.ID
               };
               this.agenda[day].push(calendarObj)
             })
@@ -213,6 +220,11 @@ export default {
           this.rezepte.push({label: rezept.data().DisplayName, id: rezept.data().id})
         })
       })
+    },
+
+    getRandomID()
+    {
+      return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
     }
   },
 

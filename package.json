@@ -1,9 +1,9 @@
 {
-  "name": "quasagram",
+  "name": "meal-o-mat",
   "version": "0.0.1",
-  "description": "A Quasar Framework app",
-  "productName": "Quasagram",
-  "author": "Danny Connell",
+  "description": "Mealplanner and Calorie Calculator",
+  "productName": "Meal-O-Mat",
+  "author": "Team Tethys",
   "private": true,
   "scripts": {
     "test": "echo \"No test specified\" && exit 0"
