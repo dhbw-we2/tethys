@@ -98,9 +98,11 @@ export default {
     },
     AddToDatabase() {
       let liste;
-      this.Zutatliste.forEach(zutat => {
-        let newestEntry = db.collection("Zutaten").doc().set({
-          Name: zutat.Name,
+      this.Zutatliste.forEach(async zutat => {
+        let newestEntry = await db.collection("Zutaten").doc().set({
+          DisplayName: zutat.Name,
+          KalorienPro100g: 0, //TODO
+          PortionInGramm: 0, //TODO
         })
         liste.add(newestEntry);
       },

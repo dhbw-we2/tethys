@@ -43,6 +43,29 @@ import db from '/db'
             </template>
           </template>
         </q-calendar>
+        <div class="row no-wrap justify-around">
+          <div>
+            {{ DailyCalorie[1] }} kcal
+          </div>
+          <div>
+            {{ DailyCalorie[2] }} kcal
+          </div>
+          <div>
+            {{ DailyCalorie[3] }} kcal
+          </div>
+          <div>
+            {{ DailyCalorie[4] }} kcal
+          </div>
+          <div>
+            {{ DailyCalorie[5] }} kcal
+          </div>
+          <div>
+            {{ DailyCalorie[6] }} kcal
+          </div>
+          <div>
+            {{ DailyCalorie[0] }} kcal
+          </div>
+        </div>
 
         <q-dialog v-model="dialogShowMeal">
           <q-card>
@@ -119,6 +142,15 @@ export default {
       selectedDate: '', // Backing Field for q-calendar
       agenda: { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] }, // Backing Field for q-calendar
       rezepte: [], // Backing Field new Meal Dialog for available meals
+      DailyCalorie: {
+        0: 0, //Sunday
+        1: 0, //Monday
+        2: 0, //Tuesday
+        3: 0, //Wednesday
+        4: 0, //Thursday
+        5: 0, //Friday
+        6: 0  //Saturday
+      }
     }
 
   },
@@ -141,7 +173,7 @@ export default {
     },
 
     /**
-     * function to move calendar one week forward
+     * function to move to next week
      */
     calendarNext () {
       this.$refs.calendar.next()
@@ -203,13 +235,11 @@ export default {
           {
             db.collection('Rezepte').doc(mealRef.Rezept.id).get().then(mealObj => {
               let date = new Date(mealRef.Date.seconds * 1000)
-              let day = date.getDay();
+              let day = date.getDay()
 
-              mealObj.data().Zutaten.forEach(zutatRef => {
-                db.collection('Zutaten').doc(zutatRef.id).get().then(zutatObj => {
-                  //this.DailyOverview[new Date(mealRef.Date.seconds * 1000).getDay()].TotalCalorie
-                  //  += (zutatObj.data().KalorienPro100g * (zutatObj.data().PortionInGramm / 100))
-                  //console.log(this.DailyOverview)
+              mealObj.data().Zutaten.forEach(async zutatRef => {
+                await db.collection('Zutaten').doc(zutatRef.id).get().then(zutatObj => {
+                  this.DailyCalorie[new Date(mealRef.Date.seconds * 1000).getDay()] += (zutatObj.data().KalorienPro100g * (zutatObj.data().PortionInGramm / 100))
                 })
               })
 
