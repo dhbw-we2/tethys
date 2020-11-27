@@ -1,23 +1,19 @@
 <template>
   <q-page class="items-center">
-    <!--{{zutaten}}-->
-    <!--{{meals}}-->
-    <q-list class="q-pl-xl">
-      <q-list-header><h3>Einkaufsliste</h3></q-list-header>
-      <q-item v-for="z in zutaten">
-        <q-item class="q-px-xl">
-          <q-item-section>
-            <q-item-label caption>{{ z.KalorienPro100g }} kcal</q-item-label>
-            <q-icon name="local_fire_department" color="orange"/>
-          </q-item-section>
-
-          <q-item-section>
-            <q-item-label><strong>{{ z.DisplayName }}</strong></q-item-label>
-            <q-item-label caption>{{ z.PortionInGramm }}</q-item-label>
-          </q-item-section>
-        </q-item>
-      </q-item>
-    </q-list>
+    <div class="row no-wrap" v-for="z in zutaten" >
+      <div class="col-1">
+        <q-icon name="local_fire_department" color="orange"/>
+      </div>
+      <div class="col-1">
+        {{ z.KalorienPro100g }} kcal
+      </div>
+      <div class="col-4">
+        <strong>{{ z.DisplayName }}</strong>
+      </div>
+      <div class="col-2">
+        {{ z.PortionInGramm }}g
+      </div>
+    </div>
   </q-page>
 </template>
 
@@ -33,20 +29,38 @@ export default {
     }
   },
 
-  created() {
+  methods: {
+    addElementUniqueToShoppingList(shoppingListObject) {
+      for (let i = 0; i < this.zutaten.length; i++)
+      {
+        if (this.zutaten[i].id == shoppingListObject.id) {
+          this.zutaten[i].PortionInGramm += shoppingListObject.PortionInGramm
+          return;
+        }
+      }
+      this.zutaten.push(shoppingListObject)
+      return
+    }
+  },
+
+  async created() {
     //getPlannedMeals
     const currentTime = Math.floor(Date.now() / 1000);
-
-    db.collection('Nutzer').doc("p6it388BP6p236oqniWj").get().then(
-      doc => {
+    //
+    db.collection('Nutzer').doc("p6it388BP6p236oqniWj").get().then( doc => {
         doc.data().MealCalendar.forEach(mealRef => {
           if(mealRef.Date.seconds > currentTime)
           {
             db.collection('Rezepte').doc(mealRef.Rezept.id).get().then(mealObj => {
                 mealObj.data().Zutaten.forEach(zutatRef => {
                   db.collection('Zutaten').doc(zutatRef.id).get().then(zutatObj => {
-                    this.zutaten.push(zutatObj.data())
-                    //console.log(zutatObj.data())
+                    let ShoppingListObject = {
+                      DisplayName: zutatObj.data().DisplayName,
+                      KalorienPro100g: zutatObj.data().KalorienPro100g,
+                      PortionInGramm: zutatObj.data().PortionInGramm,
+                      id: zutatRef.id
+                    }
+                    this.addElementUniqueToShoppingList(ShoppingListObject)
                   })
                 })
               })
@@ -55,7 +69,5 @@ export default {
       }
     )
   }
-
-
 }
 </script>

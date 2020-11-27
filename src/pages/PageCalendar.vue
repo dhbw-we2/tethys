@@ -236,19 +236,13 @@ export default {
             db.collection('Rezepte').doc(mealRef.Rezept.id).get().then(mealObj => {
               let date = new Date(mealRef.Date.seconds * 1000)
               let day = date.getDay()
-              let requests = []
 
               mealObj.data().Zutaten.forEach(zutatRef => {
                 let request = db.collection('Zutaten').doc(zutatRef.id).get().then(zutatObj => {
                   this.DailyCalorie[new Date(mealRef.Date.seconds * 1000).getDay()] += (zutatObj.data().KalorienPro100g * (zutatObj.data().PortionInGramm / 100))
-                  console.log("p: " + mealRef.ID)
                 })
-
-                requests.push(request)
               })
 
-              Promise.all(requests)
-              console.log("f: " + mealRef.ID)
               let calendarObj = {
                 Time: date.toLocaleDateString(),
                 Picture: mealObj.data().bildURL,

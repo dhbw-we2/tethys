@@ -36,3 +36,4 @@ yarn-error.log*
 src/router/db.js
 public/
 debug.log
+.firebase/
