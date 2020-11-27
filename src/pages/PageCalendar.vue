@@ -110,48 +110,52 @@ import firebase from "firebase";
 export default {
   data () {
     return {
-      newMealDate: 0,
-      newMeal: null,
-      dialogShowMeal: false,
-      dialogAddMeal: false,
-      dialogShowMealObject: { Displayname: "", Time: 0, Calorie: 0, Id: 0 },
-      currentWeekTime:0,
-      selectedDate: '',
-      agenda: { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] },
-      rezepte: []
+      newMealDate: 0, // Backing Field for new Meal Dialog - Date
+      newMeal: null, // Backing Field for new Meal Dialog - Rezept
+      dialogShowMeal: false, // Visibility boolean for Show Meal Dialog
+      dialogAddMeal: false, // Visibility boolean for new Meal
+      dialogShowMealObject: { Displayname: "", Time: 0, Calorie: 0, Id: 0 }, // Backing Field for Show Meal Dialog
+      currentWeekTime:0, // TimeStamp of current week beginning (Monday)
+      selectedDate: '', // Backing Field for q-calendar
+      agenda: { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] }, // Backing Field for q-calendar
+      rezepte: [], // Backing Field new Meal Dialog for available meals
     }
 
   },
 
   methods: {
+    /**
+     * function from q-calendar for Backing Field
+     */
     getAgenda (day) {
       return this.agenda[parseInt(day.weekday, 10)]
     },
 
+    /**
+     * function to move calendar one week back
+     */
     calendarPrev () {
       this.$refs.calendar.prev()
       this.currentWeekTime -= (7*24*60*60*1000)
       this.getCurrentWeekMeals()
     },
 
+    /**
+     * function to move calendar one week forward
+     */
     calendarNext () {
       this.$refs.calendar.next()
       this.currentWeekTime += (7*24*60*60*1000)
-      console.log(new Date(this.currentWeekTime))
       this.getCurrentWeekMeals()
     },
 
+    /**
+     *
+     */
     AddMealToCalendar() {
-      //TODO: Dynamisches Rezept
       var UserRef = db.collection('Nutzer').doc("p6it388BP6p236oqniWj")
       var RezeptRef = db.collection('Rezepte').doc(this.newMeal.id)
       var newMealObj = { Date: new Date(this.newMealDate), Rezept: RezeptRef, ID: this.getRandomID()}
-      /*
-      console.log(newMealObj)
-      UserRef.get().then(profil => {
-        console.log(profil.data())
-      })
-      */
 
       UserRef.update({
         MealCalendar: firebase.firestore.FieldValue.arrayUnion(newMealObj)
@@ -160,6 +164,10 @@ export default {
       })
     },
 
+    /**
+     * Removes referenced meal from firebase and refresh backing fields
+     * @param id - id from vue to remove correct meal
+     */
     RemoveMealFromCalendar(id) {
       let UserRef = db.collection('Nutzer').doc("p6it388BP6p236oqniWj")
 
@@ -177,9 +185,10 @@ export default {
       })
     },
 
+    /**
+     * refill all meal from current week
+     */
     getCurrentWeekMeals() {
-      //console.log(new Date(this.currentWeekTime))
-
       this.agenda[0] = []
       this.agenda[1] = []
       this.agenda[2] = []
@@ -193,14 +202,17 @@ export default {
           if((mealRef.Date.seconds * 1000) >= (this.currentWeekTime) && (mealRef.Date.seconds * 1000) <= (this.currentWeekTime + (7*24*60*60*1000) - 1000))
           {
             db.collection('Rezepte').doc(mealRef.Rezept.id).get().then(mealObj => {
+              let date = new Date(mealRef.Date.seconds * 1000)
+              let day = date.getDay();
+
               mealObj.data().Zutaten.forEach(zutatRef => {
                 db.collection('Zutaten').doc(zutatRef.id).get().then(zutatObj => {
-                  //console.log(zutatObj.data())
+                  //this.DailyOverview[new Date(mealRef.Date.seconds * 1000).getDay()].TotalCalorie
+                  //  += (zutatObj.data().KalorienPro100g * (zutatObj.data().PortionInGramm / 100))
+                  //console.log(this.DailyOverview)
                 })
               })
 
-              let date = new Date(mealRef.Date.seconds * 1000)
-              let day = date.getDay();
               let calendarObj = {
                 Time: date.toLocaleDateString(),
                 Picture: mealObj.data().bildURL,
@@ -218,7 +230,6 @@ export default {
     getAvailableRezepte(){
       db.collection('Rezepte').get().then(rezepte => {
         rezepte.forEach(rezept => {
-          console.log(rezept)
           this.rezepte.push({label: rezept.data().DisplayName, id: rezept.id})
         })
       })
@@ -232,7 +243,6 @@ export default {
 
   created() {
     this.currentWeekTime = Date.now();
-    this.currentWeekTime += (24 * 60 * 60 * 1000) * 3
     this.currentWeekTime -= (this.currentWeekTime % 1000) //Remove Milliseconds
     this.currentWeekTime -= (new Date(this.currentWeekTime).getSeconds() * 1000) //Remove Seconds
     this.currentWeekTime -= (new Date(this.currentWeekTime).getMinutes() * 60 * 1000) //Remove Minutes
@@ -241,8 +251,8 @@ export default {
     let day = new Date(this.currentWeekTime).getDay()
     switch(day)
     {
-      case 0: day = 7 //sunday = 0 remove 6 (+1) days to beginning of week
-      default: day -= 1; //monday = 1 (should not reduce)
+      case 0: day = 7 //sunday = 0 remove 6 days to align to monday
+      default: day -= 1; //day aligns to sunday = 0; so remove one less (monday = 1)
                this.currentWeekTime -= (day * 24 * 60 * 60 * 1000)
                break;
     }
