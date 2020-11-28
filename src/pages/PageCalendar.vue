@@ -2,7 +2,7 @@ import db from '/db'
 
 
 <template>
-  <q-layout view="lHr LpR lFr" class="row justify-center">
+  <q-layout view="lHr LpR lFr" class="row justify-center text-grey-10">
     <div style="max-width: 1280px; width: 100%;" >
       <div class="row justify-center items-center">
         <q-btn flat label="Vorherige Woche" @click="calendarPrev" />
@@ -27,12 +27,12 @@ import db from '/db'
               <div
                 :key="agenda.Id"
                 :label="agenda.DisplayName"
-                class="justify-start q-ma-sm shadow-5 bg-grey-4"
+                class="justify-start q-ma-sm bg-primary "
               >
                 <q-btn class="row justify-center" style="margin-top: 45px; width: 100%;" @click="dialogShowMealObject = agenda; dialogShowMeal = true">
                   <div>
                     <q-avatar style="margin-top: -35px; margin-bottom: 10px; font-size: 60px; max-height: 50px;">
-                      <img :src="agenda.Picture" style="border: rgba(0,0,0,0.4) solid 2px;" alt="Bild von diesem Essen">
+                      <img :src="agenda.Picture" style="border: rgba(111, 220, 111,1) solid 2px;" alt="Bild von diesem Essen">
                     </q-avatar>
                   </div>
                   <div class="col-12 q-px-sm">
@@ -92,7 +92,7 @@ import db from '/db'
           </q-card>
         </q-dialog>
 
-        <q-btn round color="blue" icon="add" class="float-right q-mr-xl q-mt-xl" size="big" @click="dialogAddMeal = true"/>
+        <q-btn round color=primary icon="add" class="q-ma-md float-right q-mr-xl q-mt-xl" size="xl" @click="dialogAddMeal = true"/>
 
         <q-dialog v-model="dialogAddMeal" persistent>
           <q-card>

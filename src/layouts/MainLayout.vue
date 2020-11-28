@@ -1,13 +1,14 @@
 <template>
   <q-layout view="lHr LpR lFr">
     <q-header
-      class="bg-white text-grey-10"
+      class="text-grey-10 no-border"
+      style="background:linear-gradient(to right, rgba(0,0,0,0), #9cec1e, #9cec1e, #9cec1e, #9cec1e, #9cec1e, #9cec1e, rgba(1,1,1,0) )"
       bordered
     >
-      <q-toolbar class="constrain float float-left">
+      <q-toolbar class="constrain float float-center">
         <q-btn
           to="/"
-          class="large-screen-only q-mr-sm"
+          class="q-mr-sm"
           icon="eva-calendar-outline"
           size="18px"
           flat
@@ -16,7 +17,7 @@
         />
         <q-btn
           to="/shoppinglist"
-          class="large-screen-only q-mr-sm"
+          class=" q-mr-sm"
           icon="eva-file-text-outline"
           size="18px"
           flat
@@ -24,7 +25,7 @@
           dense
         />
         <q-separator
-          class="large-screen-only"
+          class="large-screen-only bg-secondary"
           vertical
           spaced
         />
@@ -43,10 +44,26 @@
       </q-toolbar>
     </q-header>
 
-    <q-page-container>
-      <router-view />
-    </q-page-container>
+    <div class="q-pa-md q-gutter-md" >
+      <q-responsive :ratio="1">
+        <div style="min-height: 100vh">
+
+          <q-parallax class="fixed-top" style="min-height: 100vh">
+            <!--https://hips.hearstapps.com/hmg-prod.s3.amazonaws.com/images/heart-healthy-food-1580231690.jpg
+          https://online.ahu.edu/wp-content/uploads/2019/03/Healthy-Food-Doesnt-Have-To-Be-Expensive.jpg-->
+              <img src="https://hips.hearstapps.com/hmg-prod.s3.amazonaws.com/images/heart-healthy-food-1580231690.jpg">
+            <q-page-container padding class="fixed-center"  style="padding-top: 154px; width: 70vw; background:linear-gradient(to bottom, white, rgb(242, 253, 225), rgb(232, 253, 205))">
+              <router-view />
+            </q-page-container>
+          </q-parallax>
+
+        </div>
+      </q-responsive>
+    </div>
+
   </q-layout>
+
+
 </template>
 
 <script>
