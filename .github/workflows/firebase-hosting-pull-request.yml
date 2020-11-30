@@ -12,7 +12,7 @@ jobs:
       - name: Install Dependencies
         run: npm install
       - name: Build
-        run: npm run build
+        run: pwd && npm run build
       - name: Deploy
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
