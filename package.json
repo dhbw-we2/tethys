@@ -6,7 +6,8 @@
   "author": "Team Tethys",
   "private": true,
   "scripts": {
-    "test": "echo \"No test specified\" && exit 0"
+    "test": "echo \"No test specified\" && exit 0",
+    "build": "quasar build"
   },
   "dependencies": {
     "@quasar/cli": "^1.1.2",

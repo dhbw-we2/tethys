@@ -14,10 +14,8 @@ jobs:
         uses: actions/checkout@master
       - name: Install Dependencies
         run: npm install
-      - name: Link Quasar
-        run: npm link @quasar/cli
       - name: Build
-        run: quasar build
+        run: npm run build
       - name: Deploy
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
