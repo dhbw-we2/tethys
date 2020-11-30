@@ -9,6 +9,7 @@
     "test": "echo \"No test specified\" && exit 0"
   },
   "dependencies": {
+    "@quasar/cli": "^1.1.2",
     "@quasar/extras": "^1.9.9",
     "@quasar/quasar-ui-qcalendar": "^2.4.0",
     "axios": "^0.20.0",
@@ -17,7 +18,6 @@
     "firebase": "^8.1.1",
     "firebase-tools": "^8.16.2",
     "quasar": "^1.14.5",
-    "quasar-cli": "^0.17.26",
     "ui": "^0.2.4",
     "vuetify": "^2.3.14"
   },

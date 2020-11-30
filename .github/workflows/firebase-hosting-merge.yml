@@ -14,6 +14,8 @@ jobs:
         uses: actions/checkout@master
       - name: Install Dependencies
         run: npm install
+      - name: Link Quasar
+        run: npm link @quasar/cli
       - name: Build
         run: quasar build
       - name: Deploy
