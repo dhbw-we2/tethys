@@ -45,11 +45,15 @@ export default {
 
   async created() {
     //getPlannedMeals
-    const currentTime = Math.floor(Date.now() / 1000);
+    let currentTime = Math.floor(Date.now() / 1000);
+    currentTime -= (new Date(currentTime).getSeconds() * 1000) //Remove Seconds
+    currentTime -= (new Date(currentTime).getMinutes() * 60 * 1000) //Remove Minutes
+    currentTime -= (new Date(currentTime).getHours() * 60 * 60 * 1000) //Remove Hours
+    console.log(currentTime)
     //
     db.collection('Nutzer').doc("p6it388BP6p236oqniWj").get().then( doc => {
         doc.data().MealCalendar.forEach(mealRef => {
-          if(mealRef.Date.seconds > currentTime)
+          if(mealRef.Date.seconds >= currentTime)
           {
             db.collection('Rezepte').doc(mealRef.Rezept.id).get().then(mealObj => {
                 mealObj.data().Zutaten.forEach(zutatRef => {
