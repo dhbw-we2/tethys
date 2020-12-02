@@ -1,17 +1,17 @@
 <template>
-  <q-page class="items-center">
+  <q-page class="window-height window-width items-center q-pt-xl">
     <div class="row no-wrap" v-for="z in zutaten" >
-      <div class="col-1">
-        <q-icon name="local_fire_department" color="orange"/>
+      <div class="col-2 q-pa-md" align="right">
+        {{ z.PortionInGramm }} g
       </div>
-      <div class="col-1">
-        {{ z.KalorienPro100g }} kcal
-      </div>
-      <div class="col-4">
+      <div class="col-2 q-pa-md text-weight-medium">
         <strong>{{ z.DisplayName }}</strong>
       </div>
-      <div class="col-2">
-        {{ z.PortionInGramm }}g
+      <div class="col-1 q-pa-md" align="right">
+        <q-icon name="local_fire_department" color="orange"/>
+      </div>
+      <div class="col-4 q-pt-md text-caption">
+        {{ z.KalorienPro100g }} kcal pro 100g
       </div>
     </div>
   </q-page>
