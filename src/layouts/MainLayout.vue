@@ -24,6 +24,15 @@
           round
           dense
         />
+        <q-btn
+          to="/changemeal"
+          class=" q-mr-sm"
+          icon="eva-file-text-outline"
+          size="18px"
+          flat
+          round
+          dense
+        />
         <q-separator
           class="large-screen-only bg-secondary"
           vertical
