@@ -262,8 +262,6 @@ export default {
                 })
               })
 
-              console.log(mealObj.data())
-
               let calendarObj = {
                 Time: date.toLocaleDateString(),
                 Picture: mealObj.data().ImageUrl,
