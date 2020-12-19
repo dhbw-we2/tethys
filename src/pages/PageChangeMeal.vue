@@ -204,6 +204,7 @@ export default {
           let ShoppingListObject = {
             DisplayName: rezept.data().DisplayName,
             Zubereitung: rezept.data().Zubereitung,
+            ImageUrl: rezept.data().ImageUrl,
             CalorieSum: 0,
             id: rezept.id
           }
@@ -214,8 +215,7 @@ export default {
               console.log("DisplayName: " + zutatObj.data().DisplayName);
               console.log("Calorie: " + zutatObj.data().CaloriesPer100g);
               console.log("CalorieAdded: " + ShoppingListObject.CalorieSum);
-              ShoppingListObject.CalorieSum += Math.floor(zutatObj.data().CaloriesPer100g * (zutatRef.Gramm/100)) ;
-
+              ShoppingListObject.CalorieSum += Math.floor(zutatObj.data().CaloriesPer100g * (zutatRef.Gramm/100));
             })
           })
 
@@ -363,7 +363,7 @@ export default {
       this.DialogShowMealObject.DisplayName = meal.DisplayName;
       this.DialogShowMealObject.Zubereitung = meal.Zubereitung;
       this.DialogShowMealObject.CalorieSum = meal.CalorieSum;
-
+      this.DialogShowMealObject.ImageUrl = meal.ImageUrl;
 
 
       //Read Zutaten
