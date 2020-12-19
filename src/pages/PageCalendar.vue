@@ -259,7 +259,7 @@ export default {
 
               let calendarObj = {
                 Time: date.toLocaleDateString(),
-                Picture: mealObj.data().bildURL,
+                Picture: mealObj.data().ImageUrl,
                 DisplayName: mealObj.data().DisplayName,
                 Id: mealRef.ID
               };

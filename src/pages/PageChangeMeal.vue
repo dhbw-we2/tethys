@@ -1,7 +1,7 @@
 <template>
   <q-page class="flex-center">
 
-    <!-- TODO SORT, Kalorien, Validate Entries, Color in Dialog not green, Liste refreshen nach Add,Delete,Edit; Zutaten vorschlagen-->
+    <!--  Color in Dialog not green, Liste refreshen nach Add,Delete,Edit; Zutaten vorschlagen-->
 
     <!--MEAL LIST-->
      <h5>Gerichte:</h5>
@@ -10,7 +10,7 @@
         <q-icon name="local_fire_department" color="orange"/>
       </div>
       <div class="col-1">
-        {{ m.KalorienPro100g }} kcal
+        {{ m.CalorieSum }} kcal
       </div>
       <div class="col-4" >
         <strong>{{ m.DisplayName }}</strong>
@@ -35,7 +35,7 @@
 
 
         <q-card-section class="row items-center">
-          Kalorien: {{ DialogShowMealObject.Calorie }}
+          Kalorien: {{ DialogShowMealObject.CalorieSum }}
         </q-card-section>
 
         <!-- <q-card-section class="row items-center">
@@ -77,6 +77,12 @@
             required
             filled v-model="DialogShowMealObject.DisplayName"
             label="Gerichtname"
+          />
+
+          <q-input
+            required
+            filled v-model="DialogShowMealObject.ImageUrl"
+            label="Bild-URL"
           />
 
           <!-- <q-select  filled
@@ -176,7 +182,7 @@ export default {
       gerichtname: '',
       zubereitung: '',
       options: ['Stück', 'Gramm'],
-      DialogShowMealObject: { Displayname: "", Zubereitung:"" , Time: 0, Calorie: 0, Id: 0 }, // Backing Field for Show Meal Dialog
+      DialogShowMealObject: { Displayname: "", Zubereitung:"" ,ImageUrl: "", Time: 0, Calorie: 0, Id: 0 }, // Backing Field for Show Meal Dialog
       DialogShowZutatliste:[{ Name: '', Gramm:'',stueckodermenge: '', Id:0}],
       DialogShowZutatliste2:[{ Name: '', Gramm:'',stueckodermenge: '', Id:0}],
       DialogShowMeal: false, // Visibility boolean for Show Meal Dialog
@@ -192,18 +198,43 @@ export default {
     currentTime -= (new Date(currentTime).getHours() * 60 * 60 * 1000) //Remove Hours
     console.log(currentTime)
     //
-    db.collection('Rezepte').get().then( rezepte => {
+     db.collection('Rezepte').orderBy("DisplayName").get().then( rezepte => {
         rezepte.forEach(rezept => {
           console.log(rezept.id + rezepte);
           let ShoppingListObject = {
             DisplayName: rezept.data().DisplayName,
             Zubereitung: rezept.data().Zubereitung,
-            KalorienPro100g: 0,
+            CalorieSum: 0,
             id: rezept.id
           }
+
+          //foreach zutat let ShoppingListObject + Kalorien
+          rezept.data().Zutaten.forEach(zutatRef => {
+            db.collection('Zutaten').doc(zutatRef.Path.id).get().then(zutatObj => {
+              console.log("DisplayName: " + zutatObj.data().DisplayName);
+              console.log("Calorie: " + zutatObj.data().CaloriesPer100g);
+              console.log("CalorieAdded: " + ShoppingListObject.CalorieSum);
+              ShoppingListObject.CalorieSum += Math.floor(zutatObj.data().CaloriesPer100g * (zutatRef.Gramm/100)) ;
+
+            })
+          })
+
           this.addElementUniqueToShoppingList(ShoppingListObject);
         })
-    })
+    });
+
+    this.meals.sort(function(a, b) {
+      var nameA = a.name.toUpperCase();
+      var nameB = b.name.toUpperCase();
+      if (nameA < nameB) {
+        return -1;
+      }
+      if (nameA > nameB) {
+        return 1;
+      }
+      return 0;
+    });
+    console.log(this.meals);
   },
   methods : {
     AddMeal(){
@@ -262,12 +293,12 @@ export default {
 
           await db.collection("Zutaten").add({
             DisplayName: this.DialogShowZutatliste[i].DisplayName,
-            CaloriesPer100g:  this.DialogShowZutatliste[i].CaloriesPer100g
+            CaloriesPer100g:  parseInt(this.DialogShowZutatliste[i].CaloriesPer100g)
           })
             .then(function (docRef) {
               console.log("(Zutat)Document written with ID: ", docRef.id);
 
-              liste.push({Path: db.collection('Zutaten').doc(docRef.id), Gramm: gramm});
+              liste.push({Path: db.collection('Zutaten').doc(docRef.id), Gramm: parseInt(gramm)});
             })
             .catch(function (error) {
               console.error("(Zutat)Error adding document: ", error);
@@ -284,6 +315,7 @@ export default {
              await db.collection("Rezepte").add({
               DisplayName: this.DialogShowMealObject.DisplayName,
               Zubereitung: this.DialogShowMealObject.Zubereitung,
+              ImageUrl : this.DialogShowMealObject.ImageUrl,
               Zutaten: liste
             })
               .then(function (docRef) {
@@ -330,6 +362,8 @@ export default {
       this.DialogShowMealObject.Id = meal.id;
       this.DialogShowMealObject.DisplayName = meal.DisplayName;
       this.DialogShowMealObject.Zubereitung = meal.Zubereitung;
+      this.DialogShowMealObject.CalorieSum = meal.CalorieSum;
+
 
 
       //Read Zutaten
