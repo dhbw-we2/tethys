@@ -1,5 +1,5 @@
 <template>
-  <q-page class="window-height window-width items-center q-pt-xl">
+  <q-page class="items-center q-pt-xl">
     <h5 class="q-pl-xl q-ml-xl">Deine Einkaufsliste für die nächsten 14 Tage:</h5>
     <div class="row no-wrap" v-for="z in zutaten" >
       <div class="col-2 q-pa-md" align="right">
