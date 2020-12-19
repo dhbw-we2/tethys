@@ -72,18 +72,16 @@ import db from '/db'
               <strong>{{ dialogShowMealObject.DisplayName }}</strong>
             </q-card-section>
 
+
+
+            <q-card-section>
+              <img :src="dialogShowMealObject.Picture" style="max-height: 360px; max-width: 360px;">
+            </q-card-section>
+
             <q-card-section class="row items-center">
               Geplant am: {{ dialogShowMealObject.Time }}
             </q-card-section>
-            <q-card-section class="row items-center">
-              Kalorien: {{ dialogShowMealObject.Calorie }}
-            </q-card-section>
 
-            <q-card-section class="row items-center">
-              ID: {{ dialogShowMealObject.Id }}
-            </q-card-section>
-
-            <!-- Notice v-close-popup -->
             <q-card-actions align="right">
               <q-btn outline label="Schließen" color="primary" v-close-popup />
               <q-btn push label="Entfernen" color="primary" @click="RemoveMealFromCalendar(dialogShowMealObject.Id)" v-close-popup />
@@ -93,7 +91,7 @@ import db from '/db'
 
         <q-btn round color=primary icon="add" class="q-ma-md float-right q-mr-xl q-mt-xl" size="xl" @click="dialogAddCalendarEntryIsVisible = true"/>
 
-        <q-dialog v-model="dialogAddCalendarEntryIsVisible" persistent>
+        <q-dialog v-model="dialogAddCalendarEntryIsVisible">
           <q-card>
             <q-card-section class="row items-center">
               <strong>Plane ein Gericht:</strong>
@@ -108,7 +106,7 @@ import db from '/db'
             </q-card-section>
 
             <q-card-actions align="right">
-              <q-btn outline label="Schließen" color="primary" />
+              <q-btn outline label="Schließen" color="primary" v-close-popup />
               <q-btn push label="Planen" color="primary" @click="AddMealToCalendar" v-close-popup />
             </q-card-actions>
           </q-card>
@@ -134,7 +132,7 @@ export default {
       dialogAddCalendarEntrySelectedRecipe: null, // Backing Field for new Meal Dialog - Selected Recipe
 
       dialogShowMealIsVisible: false, // Visibility boolean for Show Meal Dialog
-      dialogShowMealObject: { Displayname: "", Time: 0, Calorie: 0, Id: 0 }, // Backing Field for Show Meal Dialog
+      dialogShowMealObject: { Displayname: "", Time: 0, Id: 0, Picture: "" }, // Backing Field for Show Meal Dialog
 
       currentWeekTime:0, // TimeStamp of current week beginning (Monday)
       selectedDate: '', // Backing Field for q-calendar
@@ -263,7 +261,6 @@ export default {
                 Time: date.toLocaleDateString(),
                 Picture: mealObj.data().bildURL,
                 DisplayName: mealObj.data().DisplayName,
-                Calorie: 0,
                 Id: mealRef.ID
               };
               this.agenda[day].push(calendarObj)
