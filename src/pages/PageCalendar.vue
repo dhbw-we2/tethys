@@ -1,6 +1,5 @@
 import db from '/db'
 
-
 <template>
   <q-layout view="lHr LpR lFr" class="row justify-center text-grey-10">
     <div style="max-width: 1280px; width: 100%;" >
@@ -29,10 +28,10 @@ import db from '/db'
                 :label="agenda.DisplayName"
                 class="justify-start q-ma-sm bg-primary "
               >
-                <q-btn class="row justify-center" style="margin-top: 45px; width: 100%;" @click="dialogShowMealObject = agenda; dialogShowMeal = true">
+                <q-btn class="row justify-center q-mt-lg" @click="dialogShowMealObject = agenda; dialogShowMealIsVisible = true">
                   <div>
-                    <q-avatar style="margin-top: -35px; margin-bottom: 10px; font-size: 60px; max-height: 50px;">
-                      <img :src="agenda.Picture" style="border: rgba(111, 220, 111,1) solid 2px;" alt="Bild von diesem Essen">
+                    <q-avatar>
+                      <img :src="agenda.Picture" style="border: white solid 2px;">
                     </q-avatar>
                   </div>
                   <div class="col-12 q-px-sm">
@@ -67,7 +66,7 @@ import db from '/db'
           </div>
         </div>
 
-        <q-dialog v-model="dialogShowMeal">
+        <q-dialog v-model="dialogShowMealIsVisible">
           <q-card>
             <q-card-section class="row items-center q-mx-xl">
               <strong>{{ dialogShowMealObject.DisplayName }}</strong>
@@ -86,36 +85,31 @@ import db from '/db'
 
             <!-- Notice v-close-popup -->
             <q-card-actions align="right">
-              <q-btn flat label="Entfernen" color="primary" @click="RemoveMealFromCalendar(dialogShowMealObject.Id)" v-close-popup />
-              <q-btn flat label="Schließen" color="primary" v-close-popup />
+              <q-btn outline label="Schließen" color="primary" v-close-popup />
+              <q-btn push label="Entfernen" color="primary" @click="RemoveMealFromCalendar(dialogShowMealObject.Id)" v-close-popup />
             </q-card-actions>
           </q-card>
         </q-dialog>
 
-        <q-btn round color=primary icon="add" class="q-ma-md float-right q-mr-xl q-mt-xl" size="xl" @click="dialogAddMeal = true"/>
+        <q-btn round color=primary icon="add" class="q-ma-md float-right q-mr-xl q-mt-xl" size="xl" @click="dialogAddCalendarEntryIsVisible = true"/>
 
-        <q-dialog v-model="dialogAddMeal" persistent>
+        <q-dialog v-model="dialogAddCalendarEntryIsVisible" persistent>
           <q-card>
             <q-card-section class="row items-center">
               <strong>Plane ein Gericht:</strong>
             </q-card-section>
 
             <q-card-section class="row items-center">
-              <q-date landscape v-model="newMealDate" first-day-of-week="1">
-
-              </q-date>
+              <q-date landscape v-model="dialogAddCalendarEntrySelectedDate" first-day-of-week="1" />
             </q-card-section>
 
             <q-card-section class="row items-center">
-              <q-select outlined v-model="newMeal" :options="rezepte" map-options>
-
-              </q-select>
+              <q-select outlined v-model="dialogAddCalendarEntrySelectedRecipe" :options="dialogAddCalendarEntryRecipes" map-options />
             </q-card-section>
 
-            <!-- Notice v-close-popup -->
             <q-card-actions align="right">
-              <q-btn flat label="Close" color="primary" v-close-popup />
-              <q-btn flat label="Add Meal" color="primary" @click="AddMealToCalendar" v-close-popup />
+              <q-btn outline label="Schließen" color="primary" />
+              <q-btn push label="Planen" color="primary" @click="AddMealToCalendar" v-close-popup />
             </q-card-actions>
           </q-card>
         </q-dialog>
@@ -133,15 +127,19 @@ import firebase from "firebase";
 export default {
   data () {
     return {
-      newMealDate: 0, // Backing Field for new Meal Dialog - Date
-      newMeal: null, // Backing Field for new Meal Dialog - Rezept
-      dialogShowMeal: false, // Visibility boolean for Show Meal Dialog
-      dialogAddMeal: false, // Visibility boolean for new Meal
+
+      dialogAddCalendarEntryIsVisible: false, // Visibility boolean for new Meal Dialog
+      dialogAddCalendarEntrySelectedDate: 0, // Backing Field for new Meal Dialog - Selected Date
+      dialogAddCalendarEntryRecipes: [], // Backing Field for new Meal Dialog - Available Recipes
+      dialogAddCalendarEntrySelectedRecipe: null, // Backing Field for new Meal Dialog - Selected Recipe
+
+      dialogShowMealIsVisible: false, // Visibility boolean for Show Meal Dialog
       dialogShowMealObject: { Displayname: "", Time: 0, Calorie: 0, Id: 0 }, // Backing Field for Show Meal Dialog
+
       currentWeekTime:0, // TimeStamp of current week beginning (Monday)
       selectedDate: '', // Backing Field for q-calendar
       agenda: { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] }, // Backing Field for q-calendar
-      rezepte: [], // Backing Field new Meal Dialog for available meals
+
       DailyCalorie: {
         0: 0, //Sunday
         1: 0, //Monday
@@ -182,12 +180,36 @@ export default {
     },
 
     /**
-     *
+     * Resets the local backing fields,
+     * will be called when a refresh takes place
+     */
+    resetPage() {
+      this.DailyCalorie = {
+        0: 0, //Sunday
+        1: 0, //Monday
+        2: 0, //Tuesday
+        3: 0, //Wednesday
+        4: 0, //Thursday
+        5: 0, //Friday
+        6: 0  //Saturday
+      }
+
+      this.agenda[0] = []
+      this.agenda[1] = []
+      this.agenda[2] = []
+      this.agenda[3] = []
+      this.agenda[4] = []
+      this.agenda[5] = []
+      this.agenda[6] = []
+    },
+
+    /**
+     * This functions will add a new meal to the calendar
      */
     AddMealToCalendar() {
       var UserRef = db.collection('Nutzer').doc("p6it388BP6p236oqniWj")
-      var RezeptRef = db.collection('Rezepte').doc(this.newMeal.id)
-      var newMealObj = { Date: new Date(this.newMealDate), Rezept: RezeptRef, ID: this.getRandomID()}
+      var RezeptRef = db.collection('Rezepte').doc(this.dialogAddCalendarEntrySelectedRecipe.id)
+      var newMealObj = { Date: new Date(this.dialogAddCalendarEntrySelectedDate), Rezept: RezeptRef, ID: this.getRandomID()}
 
       UserRef.update({
         MealCalendar: firebase.firestore.FieldValue.arrayUnion(newMealObj)
@@ -221,13 +243,7 @@ export default {
      * refill all meal from current week
      */
     getCurrentWeekMeals() {
-      this.agenda[0] = []
-      this.agenda[1] = []
-      this.agenda[2] = []
-      this.agenda[3] = []
-      this.agenda[4] = []
-      this.agenda[5] = []
-      this.agenda[6] = []
+      this.resetPage()
 
       db.collection('Nutzer').doc("p6it388BP6p236oqniWj").get().then(doc => {
         doc.data().MealCalendar.forEach(mealRef => {
@@ -238,8 +254,8 @@ export default {
               let day = date.getDay()
 
               mealObj.data().Zutaten.forEach(zutatRef => {
-                let request = db.collection('Zutaten').doc(zutatRef.id).get().then(zutatObj => {
-                  this.DailyCalorie[new Date(mealRef.Date.seconds * 1000).getDay()] += (zutatObj.data().KalorienPro100g * (zutatObj.data().PortionInGramm / 100))
+                let request = db.collection('Zutaten').doc(zutatRef.Path.id).get().then(zutatObj => {
+                  this.DailyCalorie[new Date(mealRef.Date.seconds * 1000).getDay()] += (Math.floor(zutatObj.data().CaloriesPer100g * (zutatRef.Gramm / 100)))
                 })
               })
 
@@ -260,8 +276,13 @@ export default {
     getAvailableRezepte(){
       db.collection('Rezepte').get().then(rezepte => {
         rezepte.forEach(rezept => {
-          this.rezepte.push({label: rezept.data().DisplayName, id: rezept.id})
+          this.dialogAddCalendarEntryRecipes.push({label: rezept.data().DisplayName, id: rezept.id})
         })
+      }).then(obj => {
+        if(this.dialogAddCalendarEntryRecipes.length > 0)
+        {
+          this.dialogAddCalendarEntrySelectedRecipe = this.dialogAddCalendarEntryRecipes[0]
+        }
       })
     },
 
@@ -277,6 +298,11 @@ export default {
     this.currentWeekTime -= (new Date(this.currentWeekTime).getSeconds() * 1000) //Remove Seconds
     this.currentWeekTime -= (new Date(this.currentWeekTime).getMinutes() * 60 * 1000) //Remove Minutes
     this.currentWeekTime -= (new Date(this.currentWeekTime).getHours() * 60 * 60 * 1000) //Remove Hours
+
+    //Preselect current day in backingfield: format YYYY/MM/DD
+    this.dialogAddCalendarEntrySelectedDate = new Date(this.currentWeekTime).getFullYear() + "/" +
+                       (new Date(this.currentWeekTime).getMonth() + 1) +  "/" + /* getMonth is IndexBased, hence the increment */
+                       new Date(this.currentWeekTime).getDate()
 
     let day = new Date(this.currentWeekTime).getDay()
     switch(day)
