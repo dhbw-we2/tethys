@@ -1,6 +1,8 @@
 <template>
   <q-page class="flex-center">
 
+    <!-- TODO SORT, Kalorien, Validate Entries, Color in Dialog not green, Liste refreshen nach Add,Delete,Edit; Zutaten vorschlagen-->
+
     <!--MEAL LIST-->
      <h5>Gerichte:</h5>
     <div class="row no-wrap Meallistmeal" @click="MealClicked(m)" v-for="m in meals" >
@@ -13,13 +15,9 @@
       <div class="col-4" >
         <strong>{{ m.DisplayName }}</strong>
       </div>
-      <div class="col-2">
-        Zubereitung: <br>{{ m.Zubereitung }}
-      </div>
     </div>
 
     <q-btn label="+ MEAL"
-           type="submit"
            color="primary"
            @click="AddMeal" />
 
@@ -40,53 +38,74 @@
           Kalorien: {{ DialogShowMealObject.Calorie }}
         </q-card-section>
 
-        <q-card-section class="row items-center">
+        <!-- <q-card-section class="row items-center">
           ID: {{ DialogShowMealObject.Id }}
-        </q-card-section>
+        </q-card-section> -->
 
         <q-card-section class="row items-center">
           Zutaten:<br>
           <div class="NewZutatContainer"
                v-for="(zutat, counter) in DialogShowZutatliste"
                v-bind:key="counter">
-            <span class="cancelX" @click="DialogDeleteZutat(zutat)">x</span>
+            <!-- <span class="cancelX" @click="DialogDeleteZutat(zutat)">x</span> -->
             Zutat {{counter}}:<br>
-            DisplayName: {{ zutat.DisplayName }}<br>
-            id: {{zutat.id}}
-
+            <!-- DisplayName:--> {{ zutat.DisplayName }}<br>
+            Menge: {{ zutat.Gramm }}g<br>
+            KalorienPer100g: {{ zutat.CaloriesPer100g }}
+            <!-- id: {{zutat.id}} -->
           </div><br>
         </q-card-section>
 
         <!-- Notice v-close-popup -->
         <q-card-actions align="right">
           <q-btn flat label="Schließen" color="primary" v-close-popup />
-          <q-btn flat label="Editieren" color="primary" @click="ShowDialog_EditMeal(DialogShowMealObject.Id)" v-close-popup />
+          <q-btn flat label="Editieren" color="primary" @click="ShowDialog_EditMeal()" v-close-popup />
         </q-card-actions>
       </q-card>
     </q-dialog>
 
-    <!-- ADD/EDIT MEAL DIALOG BOX-->
+    <!-- ADD/EDIT(Addit) MEAL DIALOG BOX-->
     <q-dialog v-model="DialogAdditMeal">
       <q-card>
-        <q-card-section class="row items-center q-mx-xl">
-        <form @submit.prevent.stop="onSubmit" @reset.prevent.stop="onReset" class="q-gutter-md">
-          <label> {{DialogAdditMealObject.Id}}</label>
+        <q-form ref="AdditForm" class="q-gutter-md">
 
-          <q-input filled v-model="DialogAdditMealObject.DisplayName" label="Gerichtname" />
+        <q-card-section class="row items-center q-mx-xl">
+
+          <!-- <label> ID: {{ DialogShowMealObject.Id }}</label> -->
+
+          <q-input
+            required
+            filled v-model="DialogShowMealObject.DisplayName"
+            label="Gerichtname"
+          />
+
+          <!-- <q-select  filled
+                     :value="model"
+                     use-input
+                     hide-selected
+                     fill-input
+                     input-debounce="0"
+                     :options="zutatOptions"
+                     @filter="filterFn"
+                     @input-value="setModel"
+                     hint=""
+                     style="width: 250px; padding-bottom: 32px"/> -->
 
           <q-input
             ref="zubereitung"
             filled
-            v-model="DialogAdditMealObject.Zubereitung"
+            required
+            autogrow
+            v-model="DialogShowMealObject.Zubereitung"
             label="Zubereitung:"
-            hint="zubereitung"
             lazy-rules
             type="textarea"
             :rules="[ val => val && val.length > 0 || 'Please type something']"
           />
 
+
           <div class="NewZutatContainer"
-               v-for="(zutat, counter) in DialogAdditZutatliste"
+               v-for="(zutat, counter) in DialogShowZutatliste"
                v-bind:key="counter">
             <span class="cancelX" @click="CloseNewZutat(counter)">x</span>
             <label>{{counter+1}}.   Zutat:</label>
@@ -95,101 +114,52 @@
               label="Neue Zutat *"
               v-model="zutat.DisplayName"
               required
+              autocomplete="on"
               filled />
 
             <q-input
               required
-              ref="age"
               filled
+              min="0"
               type="number"
-              v-model="zutat.Menge"
+              v-model="zutat.Gramm"
               label="Menge *"
               lazy-rules
               :rules="[
-          val => val !== null && val !== '' || 'Please type a menge'
-        ]"/>
-            <q-select v-model="zutat.stueckodermenge" :options="options" label="Gramm"/>
+              val => val !== null && val !== '' || 'Please type a menge'
+              ]"/>
+
+            <q-input
+              required
+              filled
+              min="0"
+              type="number"
+              v-model="zutat.CaloriesPer100g"
+              label="Calories per 100g *"
+              lazy-rules
+              :rules="[
+              val => val !== null && val !== '' || 'Please type a menge'
+              ]"/>
           </div>
 
           <q-btn label="+ Zutat "
-                 type="submit"
                  color="primary"
                  @click="AddZutat" />
 
-        </form>
+
         </q-card-section>
 
-        <!-- Notice v-close-popup -->
         <q-card-actions align="right">
           <q-btn flat label="Schließen" color="primary" v-close-popup />
-          <q-btn flat label="Entfernen" color="primary" @click="RemoveMeal()" v-close-popup />
-          <q-btn flat label="Speichern" color="primary" @click="AddToDatabase()" v-close-popup />
+          <q-btn flat label="Entfernen" color="primary" @click="DialogAdditRemoveMeal()" v-close-popup />
+          <q-btn flat type="submit" label="Speichern" color="primary" @click="DialogAdditSaveToDatabase()" />
         </q-card-actions>
+
+        </q-form>
       </q-card>
     </q-dialog>
 
-    <!--ADD MEAL-->
-    <!--<div class="q-gutter-md" style="max-width: 300px">
-      <form @submit.prevent.stop="onSubmit" @reset.prevent.stop="onReset" class="q-gutter-md">
-        Gerichtname:
-        <q-input filled v-model="gerichtname" label="Neues Gericht" />
-
-        Zubereitung:
-        <q-input
-          ref="zubereitung"
-          filled
-          v-model="zubereitung"
-          label="Your zubereitung *"
-          hint="zubereitung"
-          lazy-rules
-          type="textarea"
-          :rules="[ val => val && val.length > 0 || 'Please type something']"
-        />
-
-        <div class="NewZutatContainer"
-             v-for="(zutat, counter) in Zutatliste"
-             v-bind:key="counter">
-          <span class="cancelX" @click="CloseNewZutat(counter)">x</span>
-          <label>{{counter+1}}.   Zutat:</label>
-          <q-input
-            filled
-            label="Neue Zutat *"
-            v-model="zutat.Name"
-            required
-            filled />
-
-          <q-input
-            required
-            ref="age"
-            filled
-            type="number"
-            v-model="zutat.Menge"
-            label="Menge *"
-            lazy-rules
-            :rules="[
-          val => val !== null && val !== '' || 'Please type a menge'
-        ]"/>
-          <q-select v-model="zutat.stueckodermenge" :options="options" label="Gramm"/>
-
-        </div>
-
-
-        <q-btn label="+"
-               type="submit"
-               color="primary"
-               @click="addVisa" />
-
-        <div>
-          <q-btn label="Submit" type="submit" @click="AddToDatabase" color="primary" />
-          <q-btn label="Reset" type="reset" color="primary" flat class="q-ml-sm" />
-        </div>
-      </form>
-    </div>-->
-
-
   </q-page>
-
-
 </template>
 
 <script>
@@ -206,12 +176,12 @@ export default {
       gerichtname: '',
       zubereitung: '',
       options: ['Stück', 'Gramm'],
-      DialogAdditZutatliste:[{ Name: '', Menge:'',stueckodermenge: '', Id:0}],
+      DialogShowMealObject: { Displayname: "", Zubereitung:"" , Time: 0, Calorie: 0, Id: 0 }, // Backing Field for Show Meal Dialog
+      DialogShowZutatliste:[{ Name: '', Gramm:'',stueckodermenge: '', Id:0}],
+      DialogShowZutatliste2:[{ Name: '', Gramm:'',stueckodermenge: '', Id:0}],
       DialogShowMeal: false, // Visibility boolean for Show Meal Dialog
       DialogAdditMeal: false, // Visibility boolean for Edit Meal Dialog
-      DialogShowMealObject: { Displayname: "", Zubereitung:"" , Time: 0, Calorie: 0, Id: 0 }, // Backing Field for Show Meal Dialog
-      DialogAdditMealObject: { Displayname: "", Zubereitung: "", Time: 0, Calorie: 0, Id: 0 }, // Backing Field for Show Meal Dialog
-      DialogShowZutatliste:[] , //:[{ Name: '', Menge:'',stueckodermenge: ''}],-->
+
     }
   },
   async created() {
@@ -237,7 +207,8 @@ export default {
   },
   methods : {
     AddMeal(){
-      this.DialogAdditMealObject = { Displayname: "", Zubereitung: "",Time: 0, Calorie: 0, Id: 0 };
+      this.DialogShowMealObject = { Displayname: "", Zubereitung: "",Time: 0, Calorie: 0, Id: 0 };
+      this.DialogShowZutatliste = [];
       this.DialogAdditMeal = true;
     },
 
@@ -262,65 +233,96 @@ export default {
       return
     },
     AddZutat() {
-      this.DialogAdditZutatliste.push({
+      this.DialogShowZutatliste.push({
         Name: '',
         Menge: ''
       })
     },
     CloseNewZutat(counter) {
-      this.DialogAdditZutatliste.splice(counter, 1);
+      this.DialogShowZutatliste.splice(counter, 1);
     },
 
-    AddToDatabase() {
-      let liste;
-      this.DialogAdditZutatliste.forEach(async zutat => {
+    async DialogAdditSaveToDatabase() {
+      let liste = [];
+      let isValidated = false;
+      let isSavedToDatabase = false;
 
-        //lookup for this Zutat
-        if(zutat.DisplayName != "")
-        {
-          //add zutat if not available
-            let newestEntry = await db.collection("Zutaten").doc();
-            newestEntry.set({
-              DisplayName: zutat.DisplayName,
-              KalorienPro100g: 0, //TODO
-              PortionInGramm: 0, //TODO
+      isValidated = await this.$refs.AdditForm.validate();
+
+      if(isValidated === true)
+      {
+        console.log("IsValidated");
+
+        for (let i = 0; i < this.DialogShowZutatliste.length; i++) {
+          //lookup for this Zutat
+
+          let gramm = this.DialogShowZutatliste[i].Gramm;
+          if(this.DialogShowZutatliste[i].DisplayName !== "") {
+            //TODO add zutat if not available
+
+          await db.collection("Zutaten").add({
+            DisplayName: this.DialogShowZutatliste[i].DisplayName,
+            CaloriesPer100g:  this.DialogShowZutatliste[i].CaloriesPer100g
+          })
+            .then(function (docRef) {
+              console.log("(Zutat)Document written with ID: ", docRef.id);
+
+              liste.push({Path: db.collection('Zutaten').doc(docRef.id), Gramm: gramm});
+            })
+            .catch(function (error) {
+              console.error("(Zutat)Error adding document: ", error);
             });
-          console.log(newestEntry);
-            liste.add(newestEntry);
+
+
+
           }
-        });
+        };
 
-      console.log("Liste:" + liste);
-      console.log("ID:" +this.DialogAdditMealObject.Id);
-        if(this.DialogAdditMealObject.Id == 0) {
-          db.collection("Rezepte").doc().set({
-            DisplayName: this.DialogAdditMealObject.DisplayName,
-            Zubereitung: this.DialogAdditMealObject.Zubereitung,
-            Zutaten: liste
-          })
-            .then(function () {
-              console.log("Document successfully written!");
+        console.log("Liste:" + liste);
+        console.log("(Rezept) ID:" +this.DialogShowMealObject.Id);
+          if(this.DialogShowMealObject.Id == 0) {
+             await db.collection("Rezepte").add({
+              DisplayName: this.DialogShowMealObject.DisplayName,
+              Zubereitung: this.DialogShowMealObject.Zubereitung,
+              Zutaten: liste
             })
-            .catch(function (error) {
-              console.error("Error writing document: ", error);
+              .then(function (docRef) {
+                console.log("(Rezept)Document successfully written!: " + docRef.id);
+                isSavedToDatabase = true;
+              })
+              .catch(function (error) {
+                console.error("Error writing document: ", error);
+              })
+          }
+          else
+          {
+            await db.collection("Rezepte").doc(this.DialogShowMealObject.Id).update({
+              DisplayName: this.DialogShowMealObject.DisplayName,
+              Zubereitung: this.DialogShowMealObject.Zubereitung,
+              Zutaten: liste
             })
-        }
-        else
-        {
-          db.collection("Rezepte").doc(this.DialogAdditMealObject.Id).update({
-            DisplayName: this.DialogAdditMealObject.DisplayName,
-            Zubereitung: this.DialogAdditMealObject.Zubereitung,
-            //Zutaten: liste
-          })
-            .then(function () {
-              console.log("Document successfully written!");
-            })
-            .catch(function (error) {
-              console.error("Error writing document: ", error);
-            })
-        }
+              .then(function () {
+                console.log("Document successfully written!");
+                isSavedToDatabase = true;
+              })
+              .catch(function (error) {
+                console.error("Error writing document: ", error);
+              })
+          }
+
+          if(isSavedToDatabase === true)
+            this.DialogAdditMeal=false;
+          else
+            console.log("Couldnt save to DB");
+      }
+      else
+        console.log("Not Validated?");
     },
+    DialogAdditRemoveMeal() {
+      if(this.DialogShowMealObject.Id != 0)
+        db.collection("Rezepte").doc(this.DialogShowMealObject.Id).delete();
 
+    },
     MealClicked(meal) {
       this.DialogShowZutatliste = [];
       this.DialogShowMeal = true;
@@ -333,25 +335,23 @@ export default {
       //Read Zutaten
       db.collection('Rezepte').doc(meal.id).get().then(mealObj => {
         mealObj.data().Zutaten.forEach(zutatRef => {
-          console.log("Zutaten: " + zutatRef.id);
+          console.log("Zutaten: " + zutatRef.Path);
 
-          db.collection('Zutaten').doc(zutatRef.id).get().then(zutatObj => {
+          db.collection('Zutaten').doc(zutatRef.Path.id).get().then(zutatObj => {
             console.log("DisplayName: " + zutatObj.data().DisplayName);
-            console.log("KalorienPro100g" + zutatObj.data().KalorienPro100g);
+            console.log("KalorienPro100g" + zutatObj.data().CaloriesPer100g);
 
             this.DialogShowZutatliste.push({
               DisplayName: zutatObj.data().DisplayName,
-              Kalorie: zutatObj.data().KalorienPro100g,
-              id: zutatObj.id
+              CaloriesPer100g: zutatObj.data().CaloriesPer100g,
+              id: zutatObj.id,
+              Gramm: zutatRef.Gramm,
             })
           })
         })
       })
     },
     ShowDialog_EditMeal(meal){
-      this.DialogAdditMealObject = this.DialogShowMealObject;
-      this.DialogAdditZutatliste = this.DialogShowZutatliste;
-      this.DialogShowZutatliste = [];
       this.DialogShowMeal = false;
       this.DialogAdditMeal = true;
     }
@@ -366,6 +366,10 @@ export default {
   border: 1.5px solid;
   padding:5px;
   margin-bottom: 10px;
+
+}
+.Meallistmeal:hover {
+  background-color: greenyellow;
 }
 
 .NewZutatContainer{
