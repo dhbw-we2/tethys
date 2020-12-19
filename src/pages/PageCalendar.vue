@@ -254,8 +254,8 @@ export default {
               let day = date.getDay()
 
               mealObj.data().Zutaten.forEach(zutatRef => {
-                let request = db.collection('Zutaten').doc(zutatRef.id).get().then(zutatObj => {
-                  this.DailyCalorie[new Date(mealRef.Date.seconds * 1000).getDay()] += (zutatObj.data().KalorienPro100g * (zutatObj.data().PortionInGramm / 100))
+                let request = db.collection('Zutaten').doc(zutatRef.Path.id).get().then(zutatObj => {
+                  this.DailyCalorie[new Date(mealRef.Date.seconds * 1000).getDay()] += (Math.floor(zutatObj.data().CaloriesPer100g * (zutatRef.Gramm / 100)))
                 })
               })
 
