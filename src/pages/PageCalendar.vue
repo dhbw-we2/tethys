@@ -79,7 +79,12 @@ import db from '/db'
             </q-card-section>
 
             <q-card-section class="row items-center">
-              Geplant am: {{ dialogShowMealObject.Time }}
+              <strong>Geplant am: {{ dialogShowMealObject.Time }}</strong>
+            </q-card-section>
+
+            <q-card-section style="max-width: 360px;">
+              <strong>Zubereitung:</strong><br />
+              {{ dialogShowMealObject.Zubereitung }}
             </q-card-section>
 
             <q-card-actions align="right">
@@ -132,7 +137,7 @@ export default {
       dialogAddCalendarEntrySelectedRecipe: null, // Backing Field for new Meal Dialog - Selected Recipe
 
       dialogShowMealIsVisible: false, // Visibility boolean for Show Meal Dialog
-      dialogShowMealObject: { Displayname: "", Time: 0, Id: 0, Picture: "" }, // Backing Field for Show Meal Dialog
+      dialogShowMealObject: { Displayname: "", Time: 0, Id: 0, Picture: "", Zubereitung: "" }, // Backing Field for Show Meal Dialog
 
       currentWeekTime:0, // TimeStamp of current week beginning (Monday)
       selectedDate: '', // Backing Field for q-calendar
@@ -257,11 +262,14 @@ export default {
                 })
               })
 
+              console.log(mealObj.data())
+
               let calendarObj = {
                 Time: date.toLocaleDateString(),
                 Picture: mealObj.data().ImageUrl,
                 DisplayName: mealObj.data().DisplayName,
-                Id: mealRef.ID
+                Id: mealRef.ID,
+                Zubereitung: mealObj.data().Zubereitung
               };
               this.agenda[day].push(calendarObj)
             })
