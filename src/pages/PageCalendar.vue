@@ -101,21 +101,16 @@ import db from '/db'
             </q-card-section>
 
             <q-card-section class="row items-center">
-              <q-date landscape v-model="newMealDate" first-day-of-week="1">
-
-              </q-date>
+              <q-date landscape v-model="newMealDate" first-day-of-week="1" />
             </q-card-section>
 
             <q-card-section class="row items-center">
-              <q-select outlined v-model="newMeal" :options="rezepte" map-options>
-
-              </q-select>
+              <q-select outlined v-model="newMeal" :options="rezepte" map-options />
             </q-card-section>
 
-            <!-- Notice v-close-popup -->
             <q-card-actions align="right">
-              <q-btn flat label="Close" color="primary" v-close-popup />
-              <q-btn flat label="Add Meal" color="primary" @click="AddMealToCalendar" v-close-popup />
+              <q-btn flat label="Schließen" color="primary" v-close-popup />
+              <q-btn push label="Planen" color="primary" @click="AddMealToCalendar" v-close-popup />
             </q-card-actions>
           </q-card>
         </q-dialog>
@@ -135,7 +130,9 @@ export default {
     return {
       newMealDate: 0, // Backing Field for new Meal Dialog - Date
       newMeal: null, // Backing Field for new Meal Dialog - Rezept
+
       dialogShowMeal: false, // Visibility boolean for Show Meal Dialog
+
       dialogAddMeal: false, // Visibility boolean for new Meal
       dialogShowMealObject: { Displayname: "", Time: 0, Calorie: 0, Id: 0 }, // Backing Field for Show Meal Dialog
       currentWeekTime:0, // TimeStamp of current week beginning (Monday)
@@ -182,7 +179,31 @@ export default {
     },
 
     /**
-     *
+     * Resets the local backing fields,
+     * will be called when a refresh takes place
+     */
+    resetPage() {
+      this.DailyCalorie = {
+        0: 0, //Sunday
+        1: 0, //Monday
+        2: 0, //Tuesday
+        3: 0, //Wednesday
+        4: 0, //Thursday
+        5: 0, //Friday
+        6: 0  //Saturday
+      }
+
+      this.agenda[0] = []
+      this.agenda[1] = []
+      this.agenda[2] = []
+      this.agenda[3] = []
+      this.agenda[4] = []
+      this.agenda[5] = []
+      this.agenda[6] = []
+    },
+
+    /**
+     * This functions will add a new meal to the calendar
      */
     AddMealToCalendar() {
       var UserRef = db.collection('Nutzer').doc("p6it388BP6p236oqniWj")
@@ -221,13 +242,7 @@ export default {
      * refill all meal from current week
      */
     getCurrentWeekMeals() {
-      this.agenda[0] = []
-      this.agenda[1] = []
-      this.agenda[2] = []
-      this.agenda[3] = []
-      this.agenda[4] = []
-      this.agenda[5] = []
-      this.agenda[6] = []
+      this.resetPage()
 
       db.collection('Nutzer').doc("p6it388BP6p236oqniWj").get().then(doc => {
         doc.data().MealCalendar.forEach(mealRef => {
@@ -262,6 +277,11 @@ export default {
         rezepte.forEach(rezept => {
           this.rezepte.push({label: rezept.data().DisplayName, id: rezept.id})
         })
+      }).then(obj => {
+        if(this.rezepte.length > 0)
+        {
+          this.newMeal = this.rezepte[0]
+        }
       })
     },
 
@@ -277,6 +297,11 @@ export default {
     this.currentWeekTime -= (new Date(this.currentWeekTime).getSeconds() * 1000) //Remove Seconds
     this.currentWeekTime -= (new Date(this.currentWeekTime).getMinutes() * 60 * 1000) //Remove Minutes
     this.currentWeekTime -= (new Date(this.currentWeekTime).getHours() * 60 * 60 * 1000) //Remove Hours
+
+    //Preselect current day in backingfield: format YYYY/MM/DD
+    this.newMealDate = new Date(this.currentWeekTime).getFullYear() + "/" +
+                       (new Date(this.currentWeekTime).getMonth() + 1) +  "/" + /* getMonth is IndexBased, hence the increment */
+                       new Date(this.currentWeekTime).getDate()
 
     let day = new Date(this.currentWeekTime).getDay()
     switch(day)
