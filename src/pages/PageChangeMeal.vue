@@ -475,8 +475,6 @@ export default {
       this.DialogShowMealObject.CalorieSum = meal.CalorieSum;
       this.DialogShowMealObject.ImageUrl = meal.ImageUrl;
 
-
-      //Read Zutaten
       db.collection('Rezepte').doc(meal.id).get().then(mealObj => {
         mealObj.data().Zutaten.forEach(ingredientRef => {
          db.collection('Zutaten').doc(ingredientRef.Path.id).get().then(ingredientObj => {
