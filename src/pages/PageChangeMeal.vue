@@ -51,13 +51,12 @@
         <q-card-section class="row items-center">
           Zutaten:<br>
           <div class="NewIngredientContainer"
-               v-for="(zutat, counter) in DialogShowIngredientList"
+               v-for="(ingredients, counter) in DialogShowIngredientList"
                v-bind:key="counter">
-            <!-- <span class="cancelX" @click="DialogDeleteZutat(zutat)">x</span> -->
             Zutat {{counter}}:<br>
-            <!-- DisplayName:--> {{ zutat.DisplayName }}<br>
-            Menge: {{ zutat.Gramm }}g<br>
-            KalorienPer100g: {{ zutat.CaloriesPer100g }}
+            <!-- DisplayName:--> {{ ingredients.DisplayName }}<br>
+            Menge: {{ ingredients.Gramm }}g<br>
+            KalorienPer100g: {{ ingredients.CaloriesPer100g }}
             <!-- id: {{zutat.id}} -->
           </div><br>
         </q-card-section>
@@ -108,7 +107,7 @@
           />
 
           <div class="NewIngredientContainer"
-               v-for="(zutat, counter) in DialogShowIngredientList"
+               v-for="(ingredient, counter) in DialogShowIngredientList"
                v-bind:key="counter">
             <span class="cancelX" @click="CloseNewIngredient(counter)">x</span>
             <label>{{counter+1}}.   Zutat:</label>
@@ -116,15 +115,16 @@
 
             <q-select
               filled
-              :value="zutat.DisplayName"
               use-input
               label-color="green"
               hide-selected
               fill-input
-              v-model="zutat.DisplayName"
+              :value="ingredient"
               label="Zutat"
               :options="options"
-              :option-label = "opt => opt.DisplayName + ' (' + opt.CaloriesPer100g + 'g)'"
+              :option-value = "opt => opt.DisplayName"
+              :option-label = "opt => opt.DisplayName + ' (' + opt.CaloriesPer100g + 'kcal)'"
+              @input="(opt) => { SelectOptionToIngredient(ingredient,opt); }"
               @filter="filterFn"
               @filter-abort="abortFilterFn"
               style="width: 250px"
@@ -138,22 +138,23 @@
               </template>
             </q-select>
 
-            <q-btn label="*Neu*"
-                   color="primary"
-                   @click="AddIngredient" />
+
             <q-input
               required
               filled
               min="0"
               type="number"
               label-color="green"
-              v-model="zutat.CaloriesPer100g"
+              v-model="ingredient.CaloriesPer100g"
               label="Calories per 100g *"
               lazy-rules
               :rules="[
               val => val !== null && val !== '' || 'Bitte Kalorien angeben'
               ]"/>
 
+            <q-btn label="*Neu*"
+                   color="primary"
+                   @click="AddIngredient" />
 
             <q-input
               required
@@ -161,7 +162,7 @@
               min="0"
               label-color="green"
               type="number"
-              v-model="zutat.Gramm"
+              v-model="ingredient.Gramm"
               label="Menge *"
               lazy-rules
               :rules="[
@@ -170,14 +171,15 @@
 
 
 
-            <q-input
+           <!-- <q-input
               filled
               label-color="green"
               label="Neue Zutat *"
-              v-model="zutat.DisplayName"
+              v-model="ingredient.DisplayName"
               required
               autocomplete="on"
-              filled />
+              filled /> -->
+
           </div>
 
           <q-btn label="+ Zutat "
@@ -242,9 +244,9 @@ export default {
 
           ShoppingListObject.ImageUrl = (meal.data().ImageUrl !== undefined ) ? meal.data().ImageUrl : "";
 
-          meal.data().Zutaten.forEach(zutatRef => {
-            db.collection('Zutaten').doc(zutatRef.Path.id).get().then(zutatObj => {
-              ShoppingListObject.CalorieSum += Math.floor(zutatObj.data().CaloriesPer100g * (zutatRef.Gramm/100));
+          meal.data().Zutaten.forEach(ingredientRef => {
+            db.collection('Zutaten').doc(ingredientRef.Path.id).get().then(ingredientObj => {
+              ShoppingListObject.CalorieSum += Math.floor(ingredientObj.data().CaloriesPer100g * (ingredientRef.Gramm/100));
             })
           })
 
@@ -278,6 +280,15 @@ export default {
       this.DialogShowIngredientList.splice(counter, 1);
     },
 
+    SelectOptionToIngredient(ingredient,opt){
+      if(opt !== undefined || opt != null) {
+        console.log(opt.CaloriesPer100g);
+        ingredient.DisplayName = opt.DisplayName;
+        ingredient.CaloriesPer100g = opt.CaloriesPer100g;
+        ingredient.id = opt.id;
+      }
+    },
+
     filterFn (val, update, abort) {
       if (this.options.length != 0) {
         update()
@@ -298,9 +309,9 @@ export default {
     async loadIntegredientOptions()
     {
       this.options = [];
-      db.collection('Zutaten').orderBy("DisplayName").get().then( zutatObj => {
-        zutatObj.forEach(zutat => {
-          this.options.push({DisplayName: zutat.data().DisplayName,CaloriesPer100g: zutat.data().CaloriesPer100g});
+      db.collection('Zutaten').orderBy("DisplayName").get().then( ingredientObj => {
+        ingredientObj.forEach(ingredient => {
+          this.options.push({DisplayName: ingredient.data().DisplayName,CaloriesPer100g: ingredient.data().CaloriesPer100g, id: ingredient.id});
         })
       })
     },
@@ -397,13 +408,13 @@ export default {
 
       //Read Zutaten
       db.collection('Rezepte').doc(meal.id).get().then(mealObj => {
-        mealObj.data().Zutaten.forEach(zutatRef => {
-         db.collection('Zutaten').doc(zutatRef.Path.id).get().then(zutatObj => {
+        mealObj.data().Zutaten.forEach(ingredientRef => {
+         db.collection('Zutaten').doc(ingredientRef.Path.id).get().then(ingredientObj => {
           this.DialogShowIngredientList.push({
-              DisplayName: zutatObj.data().DisplayName,
-              CaloriesPer100g: zutatObj.data().CaloriesPer100g,
-              id: zutatObj.id,
-              Gramm: zutatRef.Gramm,
+              DisplayName: ingredientObj.data().DisplayName,
+              CaloriesPer100g: ingredientObj.data().CaloriesPer100g,
+              id: ingredientObj.id,
+              Gramm: ingredientRef.Gramm,
             })
           })
         })
