@@ -1,20 +1,21 @@
 <template>
-  <q-page class="items-center q-pt-xl">
-    <h5 class="q-pl-xl q-ml-xl">Deine Einkaufsliste für die nächsten 14 Tage:</h5>
+  <q-page class="flex-center q-pt-xl items-baseline" >
+    <h5 class="q-pl-md q-ml-xl">Deine Einkaufsliste für die nächsten 14 Tage:</h5>
     <div class="row no-wrap" v-for="z in zutaten" >
       <div class="col-2 q-pa-md" align="right">
-        {{ z.PortionSize }} g
+        {{ z.PortionSize }}&#8198g
       </div>
-      <div class="col-2 q-pa-md text-weight-medium">
+      <div class="col-4 q-pa-md text-weight-medium">
         <strong>{{ z.DisplayName }}</strong>
       </div>
       <div class="col-1 q-pa-md" align="right">
         <q-icon name="local_fire_department" color="orange"/>
       </div>
-      <div class="col-4 q-pt-md text-caption">
-        {{ z.CaloriesPer100g }} kcal pro 100g
+      <div class="col-3 q-pt-md text-caption">
+        {{ z.CaloriesPer100g }}&#8198kcal pro 100&#8198g
       </div>
     </div>
+
   </q-page>
 </template>
 
