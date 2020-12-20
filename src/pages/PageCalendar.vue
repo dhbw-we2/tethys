@@ -3,13 +3,15 @@ import db from '/db'
 <template>
   <q-layout view="lHr LpR lFr" class="row justify-center text-grey-10">
     <div style="max-width: 1280px; width: 100%;" >
-      <div class="row justify-center items-center">
-        <q-btn flat label="Vorherige Woche" @click="calendarPrev" />
-        <q-separator vertical />
-        <q-btn flat label="Nächste Woche" @click="calendarNext" />
-      </div>
-      <q-separator />
-      <div style="overflow: hidden">
+      <div class="text-h5 text-center q-py-md" >{{ new Date(currentWeekTime).toLocaleString('de-De', {month: "long"}) }} - {{ new Date(currentWeekTime).getFullYear() }}</div>
+      <div style="border-style: solid;" class="border-color-grey-3">
+        <div class="row justify-center items-center">
+          <q-btn flat label="Vorherige Woche" @click="calendarPrev" />
+          <q-separator vertical />
+          <q-btn flat label="Nächste Woche" @click="calendarNext" />
+        </div>
+        <q-separator />
+        <div>
         <q-calendar
           ref="calendar"
           v-model="selectedDate"
@@ -19,6 +21,7 @@ import db from '/db'
           transition-prev="slide-right"
           transition-next="slide-left"
           locale="de-de"
+          no-scroll
           style="min-height: 100px;"
         >
           <template #day-body="{ timestamp }">
@@ -43,89 +46,77 @@ import db from '/db'
             </template>
           </template>
         </q-calendar>
-        <div class="row no-wrap justify-around">
-          <div>
-            {{ DailyCalorie[1] }} kcal
-          </div>
-          <div>
-            {{ DailyCalorie[2] }} kcal
-          </div>
-          <div>
-            {{ DailyCalorie[3] }} kcal
-          </div>
-          <div>
-            {{ DailyCalorie[4] }} kcal
-          </div>
-          <div>
-            {{ DailyCalorie[5] }} kcal
-          </div>
-          <div>
-            {{ DailyCalorie[6] }} kcal
-          </div>
-          <div>
-            {{ DailyCalorie[0] }} kcal
-          </div>
         </div>
+      </div>
 
-        <q-dialog v-model="dialogShowMealIsVisible">
-          <q-card style="width: 650px; max-width: 80vw;">
-            <q-card-section class="text-center">
-              <strong>{{ dialogShowMealObject.DisplayName }}</strong>
-            </q-card-section>
+      <div class="row no-wrap justify-around q-pt-md">
+        <div>{{ DailyCalorie[1] }} kcal</div>
+        <div>{{ DailyCalorie[2] }} kcal</div>
+        <div>{{ DailyCalorie[3] }} kcal</div>
+        <div>{{ DailyCalorie[4] }} kcal</div>
+        <div>{{ DailyCalorie[5] }} kcal</div>
+        <div>{{ DailyCalorie[6] }} kcal</div>
+        <div>{{ DailyCalorie[0] }} kcal</div>
+      </div>
 
-            <q-card-section horizontal>
-              <q-img :src="dialogShowMealObject.Picture" class="q-ml-md" style="max-height: 360px; max-width: 360px;" />
+      <q-dialog v-model="dialogShowMealIsVisible">
+        <q-card style="width: 650px; max-width: 80vw;">
+          <q-card-section class="text-center">
+            <strong>{{ dialogShowMealObject.DisplayName }}</strong>
+          </q-card-section>
 
+          <q-card-section horizontal>
+            <q-img :src="dialogShowMealObject.Picture" class="q-ml-md" style="max-height: 360px; max-width: 360px;" />
+
+            <q-card-section>
               <q-card-section>
-                <q-card-section>
-                  <strong>Zutaten:</strong>
-                </q-card-section>
-                <q-card-section>
-                  <q-list>
-                    <q-item v-for="ingredient in dialogShowMealObject.Ingredients">
-                      {{ingredient.Menge}}g {{ingredient.DisplayName}}
-                    </q-item>
-                  </q-list>
-                </q-card-section>
+                <strong>Zutaten:</strong>
+              </q-card-section>
+              <q-card-section>
+                <q-list>
+                  <q-item v-for="ingredient in dialogShowMealObject.Ingredients">
+                    {{ingredient.Menge}}g {{ingredient.DisplayName}}
+                  </q-item>
+                </q-list>
               </q-card-section>
             </q-card-section>
+          </q-card-section>
 
-            <q-card-section style="max-width: 70vw;">
-              <p>Diese Mahlzeit ist geplant für den {{ dialogShowMealObject.Time }} mit einem Brennwert von {{dialogShowMealObject.Calories}} Kalorien</p>
-              <p><strong>Zubereitung:</strong></p>
-              {{ dialogShowMealObject.Zubereitung }}
-            </q-card-section>
+          <q-card-section style="max-width: 70vw;">
+            <p>Diese Mahlzeit ist geplant für den {{ dialogShowMealObject.Time }} mit einem Brennwert von {{dialogShowMealObject.Calories}} Kalorien</p>
+            <p><strong>Zubereitung:</strong></p>
+            {{ dialogShowMealObject.Zubereitung }}
+          </q-card-section>
 
-            <q-card-actions align="right">
-              <q-btn outline label="Schließen" color="primary" v-close-popup />
-              <q-btn push label="Entfernen" color="primary" @click="RemoveMealFromCalendar(dialogShowMealObject.Id)" v-close-popup />
-            </q-card-actions>
-          </q-card>
-        </q-dialog>
+          <q-card-actions align="right">
+            <q-btn outline label="Schließen" color="primary" v-close-popup />
+            <q-btn push label="Entfernen" color="primary" @click="RemoveMealFromCalendar(dialogShowMealObject.Id)" v-close-popup />
+          </q-card-actions>
+        </q-card>
+      </q-dialog>
 
-        <q-btn round color=primary icon="add" class="q-ma-md float-right q-mr-xl q-mt-xl" size="xl" @click="dialogAddCalendarEntryIsVisible = true"/>
+      <q-btn round color=primary icon="add" class="q-ma-md float-right" size="lg" @click="dialogAddCalendarEntryIsVisible = true"/>
 
-        <q-dialog v-model="dialogAddCalendarEntryIsVisible">
-          <q-card>
-            <q-card-section class="row items-center">
-              <strong>Plane ein Gericht:</strong>
-            </q-card-section>
+      <q-dialog v-model="dialogAddCalendarEntryIsVisible">
+        <q-card>
+          <q-card-section class="row items-center">
+            <strong>Plane ein Gericht:</strong>
+          </q-card-section>
 
-            <q-card-section class="row items-center">
-              <q-date landscape v-model="dialogAddCalendarEntrySelectedDate" first-day-of-week="1" />
-            </q-card-section>
+          <q-card-section class="row items-center">
+            <q-date landscape v-model="dialogAddCalendarEntrySelectedDate" first-day-of-week="1" />
+          </q-card-section>
 
-            <q-card-section class="row items-center">
-              <q-select outlined v-model="dialogAddCalendarEntrySelectedRecipe" :options="dialogAddCalendarEntryRecipes" map-options />
-            </q-card-section>
+          <q-card-section class="row items-center">
+            <q-select outlined v-model="dialogAddCalendarEntrySelectedRecipe" :options="dialogAddCalendarEntryRecipes" map-options />
+          </q-card-section>
 
-            <q-card-actions align="right">
-              <q-btn outline label="Schließen" color="primary" v-close-popup />
-              <q-btn push label="Planen" color="primary" @click="AddMealToCalendar" v-close-popup />
-            </q-card-actions>
-          </q-card>
-        </q-dialog>
-      </div>
+          <q-card-actions align="right">
+            <q-btn outline label="Schließen" color="primary" v-close-popup />
+            <q-btn push label="Planen" color="primary" @click="AddMealToCalendar" v-close-popup />
+          </q-card-actions>
+        </q-card>
+      </q-dialog>
     </div>
   </q-layout>
 </template>
