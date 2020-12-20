@@ -50,13 +50,13 @@ import db from '/db'
       </div>
 
       <div class="row no-wrap justify-around q-pt-md">
-        <div>{{ DailyCalorie[1] }} kcal</div>
-        <div>{{ DailyCalorie[2] }} kcal</div>
-        <div>{{ DailyCalorie[3] }} kcal</div>
-        <div>{{ DailyCalorie[4] }} kcal</div>
-        <div>{{ DailyCalorie[5] }} kcal</div>
-        <div>{{ DailyCalorie[6] }} kcal</div>
-        <div>{{ DailyCalorie[0] }} kcal</div>
+        <div>{{ DailyCalorie[1] }}&#8198kcal</div>
+        <div>{{ DailyCalorie[2] }}&#8198kcal</div>
+        <div>{{ DailyCalorie[3] }}&#8198kcal</div>
+        <div>{{ DailyCalorie[4] }}&#8198kcal</div>
+        <div>{{ DailyCalorie[5] }}&#8198kcal</div>
+        <div>{{ DailyCalorie[6] }}&#8198kcal</div>
+        <div>{{ DailyCalorie[0] }}&#8198kcal</div>
       </div>
 
       <q-dialog v-model="dialogShowMealIsVisible">
