@@ -74,8 +74,8 @@ import db from '/db'
               </q-card-section>
               <q-card-section>
                 <q-list>
-                  <q-item v-for="ingredient in dialogShowMealObject.Ingredients">
-                    {{ingredient.Menge}}g {{ingredient.DisplayName}}
+                  <q-item v-for="ingredient in dialogShowMealObject.Ingredients" :key="dialogShowMealObject.Id">
+                    {{ingredient.Amount}}g {{ingredient.DisplayName}}
                   </q-item>
                 </q-list>
               </q-card-section>
@@ -139,7 +139,7 @@ export default {
       dialogShowMealIsVisible: false, // Visibility boolean for Show Meal Dialog
       dialogShowMealObject: { Displayname: "", Time: 0, Id: 0, Picture: "", Zubereitung: "" }, // Backing Field for Show Meal Dialog
 
-      currentWeekTime:0, // TimeStamp of current week beginning (Monday)
+      currentWeekTime:0, // TimeStamp of the beginning of the current week (Monday)
       selectedDate: '', // Backing Field for q-calendar
       agenda: { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] }, // Backing Field for q-calendar
 
@@ -158,7 +158,8 @@ export default {
 
   methods: {
     /**
-     * function from q-calendar for Backing Field
+     * function from q-calendar to access Backing Fields
+     * @param {int} day - (between 0 and 6, representing sunday: 0 to saturday: 6)
      */
     getAgenda (day) {
       return this.agenda[parseInt(day.weekday, 10)]
@@ -170,21 +171,21 @@ export default {
     calendarPrev () {
       this.$refs.calendar.prev()
       this.currentWeekTime -= (7*24*60*60*1000)
-      this.getCurrentWeekMeals()
+      this.getCurrentWeekCalendarEntries()
     },
 
     /**
-     * function to move to next week
+     * function to move calendar one week forward
      */
     calendarNext () {
       this.$refs.calendar.next()
       this.currentWeekTime += (7*24*60*60*1000)
-      this.getCurrentWeekMeals()
+      this.getCurrentWeekCalendarEntries()
     },
 
     /**
      * Resets the local backing fields,
-     * will be called when a refresh takes place
+     * will be called when a refresh is triggered
      */
     resetPage() {
       this.DailyCalorie = {
@@ -207,7 +208,7 @@ export default {
     },
 
     /**
-     * This functions will add a new meal to the calendar
+     * This functions will add a new entry to the calendar and triggers a refresh of the backing fields
      */
     AddMealToCalendar() {
       var UserRef = db.collection('Nutzer').doc("p6it388BP6p236oqniWj")
@@ -217,7 +218,7 @@ export default {
       UserRef.update({
         MealCalendar: firebase.firestore.FieldValue.arrayUnion(newMealObj)
       }).then(object => {
-        this.getCurrentWeekMeals()
+        this.getCurrentWeekCalendarEntries()
       })
     },
 
@@ -229,13 +230,13 @@ export default {
       let UserRef = db.collection('Nutzer').doc("p6it388BP6p236oqniWj")
 
       UserRef.get().then(object => {
-       object.data().MealCalendar.forEach(mealObj => {
-         if(mealObj.ID == id)
+       object.data().MealCalendar.forEach(calendarEntry => {
+         if(calendarEntry.ID == id)
          {
            UserRef.update({
-             MealCalendar: firebase.firestore.FieldValue.arrayRemove(mealObj)
-           }).then(obj => {
-             this.getCurrentWeekMeals()
+             MealCalendar: firebase.firestore.FieldValue.arrayRemove(calendarEntry)
+           }).then(callback => {
+             this.getCurrentWeekCalendarEntries()
            })
          }
        })
@@ -245,7 +246,7 @@ export default {
     /**
      * load all calendar entries for the current week
      */
-    getCurrentWeekMeals() {
+    getCurrentWeekCalendarEntries() {
       this.resetPage()
 
       db.collection('Nutzer').doc("p6it388BP6p236oqniWj").get().then(doc => {
@@ -268,7 +269,7 @@ export default {
 
               Recipe.data().Zutaten.forEach(async ingredientReference => {
                 await db.collection('Zutaten').doc(ingredientReference.Path.id).get().then(ingredient => {
-                  calendarObj.Ingredients.push({DisplayName: ingredient.data().DisplayName, Menge: ingredientReference.Gramm} )
+                  calendarObj.Ingredients.push({DisplayName: ingredient.data().DisplayName, Amount: ingredientReference.Gramm} )
                   let calories = Math.floor(ingredient.data().CaloriesPer100g * (ingredientReference.Gramm / 100))
                   calendarObj.Calories += calories
                   this.DailyCalorie[new Date(calendarEntry.Date.seconds * 1000).getDay()] += calories
@@ -282,12 +283,15 @@ export default {
       })
     },
 
-    getAvailableReceipes(){
-      db.collection('Rezepte').get().then(rezepte => {
-        rezepte.forEach(rezept => {
-          this.dialogAddCalendarEntryRecipes.push({label: rezept.data().DisplayName, id: rezept.id})
+    /**
+     * load all available Recipes
+     **/
+    getAvailableRecipes(){
+      db.collection('Rezepte').get().then(recipes => {
+        recipes.forEach(recipe => {
+          this.dialogAddCalendarEntryRecipes.push({label: recipe.data().DisplayName, id: recipe.id})
         })
-      }).then(obj => {
+      }).then(callback => {
         if(this.dialogAddCalendarEntryRecipes.length > 0)
         {
           this.dialogAddCalendarEntrySelectedRecipe = this.dialogAddCalendarEntryRecipes[0]
@@ -295,12 +299,18 @@ export default {
       })
     },
 
+    /**
+     * generates a random id, for our meal entries, so they can be referenced and enables the opportunity for multiple same meals in one day.
+     */
     getRandomID()
     {
       return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
     }
   },
 
+  /**
+   * This function will be called on page load, to init backing fields
+   */
   created() {
     this.currentWeekTime = Date.now();
     this.currentWeekTime -= (this.currentWeekTime % 1000) //Remove Milliseconds
@@ -317,12 +327,13 @@ export default {
     switch(day)
     {
       case 0: day = 7 //sunday = 0 remove 6 days to align to monday
-      default: day -= 1; //day aligns to sunday = 0; so remove one more (monday = 1)
+      default: day -= 1; //day aligns to sunday = 0; so remove one fewer, to monday = 1
                this.currentWeekTime -= (day * 24 * 60 * 60 * 1000)
                break;
     }
-    this.getCurrentWeekMeals()
-    this.getAvailableReceipes()
+
+    this.getCurrentWeekCalendarEntries()
+    this.getAvailableRecipes()
   }
 }
 </script>
