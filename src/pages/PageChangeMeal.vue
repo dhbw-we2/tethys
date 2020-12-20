@@ -1,7 +1,7 @@
 <template>
   <q-page class="flex-center">
 
-    <!--  Color in Dialog not green, Zutaten vorschlagen, Bevor ZUtat hinzugefügt wírd prüfen, Design, Verenglische, Dokumentation, Kommentare/Console raus
+    <!-- Zutaten vorschlagen, Bevor ZUtat hinzugefügt wírd prüfen, Design, Dokumentation
 
     Ladebalken -->
 
@@ -32,7 +32,7 @@
 
         <q-card-section class="row items-center">
           Zubereitung: <br>
-          {{ DialogShowMealObject.Zubereitung }}
+          {{ DialogShowMealObject.Preparation }}
         </q-card-section>
 
 
@@ -46,8 +46,8 @@
 
         <q-card-section class="row items-center">
           Zutaten:<br>
-          <div class="NewZutatContainer"
-               v-for="(zutat, counter) in DialogShowZutatliste"
+          <div class="NewIngredientContainer"
+               v-for="(zutat, counter) in DialogShowIngredientList"
                v-bind:key="counter">
             <!-- <span class="cancelX" @click="DialogDeleteZutat(zutat)">x</span> -->
             Zutat {{counter}}:<br>
@@ -73,55 +73,54 @@
 
         <q-card-section class="row items-center q-mx-xl">
 
-          <!-- <label> ID: {{ DialogShowMealObject.Id }}</label> -->
-
           <q-input
+            class="DialogInputTextColor"
             required
-            filled v-model="DialogShowMealObject.DisplayName"
+            filled
+            label-color="green"
+            v-model="DialogShowMealObject.DisplayName"
             label="Gerichtname"
+            :rules="[
+              val => val !== null && val !== '']"
           />
 
           <q-input
-            filled v-model="DialogShowMealObject.ImageUrl"
+            filled
+            label-color="green"
+            v-model="DialogShowMealObject.ImageUrl"
             label="Bild-URL"
           />
 
           <q-input
-            ref="zubereitung"
             filled
             required
             autogrow
-            v-model="DialogShowMealObject.Zubereitung"
+            label-color="green"
+            v-model="DialogShowMealObject.Preparation"
             label="Zubereitung:"
-            lazy-rules
             type="textarea"
-            :rules="[ val => val && val.length > 0 || 'Please type something']"
+            :rules="[
+              val => val !== null && val !== '']"
           />
 
-          <div class="NewZutatContainer"
-               v-for="(zutat, counter) in DialogShowZutatliste"
+          <div class="NewIngredientContainer"
+               v-for="(zutat, counter) in DialogShowIngredientList"
                v-bind:key="counter">
-            <span class="cancelX" @click="CloseNewZutat(counter)">x</span>
+            <span class="cancelX" @click="CloseNewIngredient(counter)">x</span>
             <label>{{counter+1}}.   Zutat:</label>
-            <q-input
-              filled
-              label="Neue Zutat *"
-              v-model="zutat.DisplayName"
-              required
-              autocomplete="on"
-              filled />
+
 
             <q-select
               filled
               :value="zutat.DisplayName"
               use-input
+              label-color="green"
               hide-selected
               fill-input
-              input-debounce="0"
               v-model="zutat.DisplayName"
               label="Zutat"
               :options="options"
-              @input-value="(val) => {zutat.DisplayName = val}"
+              :option-label = "opt => opt.DisplayName + ' (' + opt.CaloriesPer100g + 'g)'"
               @filter="filterFn"
               @filter-abort="abortFilterFn"
               style="width: 250px"
@@ -135,34 +134,51 @@
               </template>
             </q-select>
 
+            <q-btn label="*Neu*"
+                   color="primary"
+                   @click="AddIngredient" />
             <q-input
               required
               filled
               min="0"
+              type="number"
+              label-color="green"
+              v-model="zutat.CaloriesPer100g"
+              label="Calories per 100g *"
+              lazy-rules
+              :rules="[
+              val => val !== null && val !== '' || 'Bitte Kalorien angeben'
+              ]"/>
+
+
+            <q-input
+              required
+              filled
+              min="0"
+              label-color="green"
               type="number"
               v-model="zutat.Gramm"
               label="Menge *"
               lazy-rules
               :rules="[
-              val => val !== null && val !== '' || 'Please type a menge'
+              val => val !== null && val !== '' || 'Bitte Menge angeben'
               ]"/>
 
+
+
             <q-input
-              required
               filled
-              min="0"
-              type="number"
-              v-model="zutat.CaloriesPer100g"
-              label="Calories per 100g *"
-              lazy-rules
-              :rules="[
-              val => val !== null && val !== '' || 'Please type a menge'
-              ]"/>
+              label-color="green"
+              label="Neue Zutat *"
+              v-model="zutat.DisplayName"
+              required
+              autocomplete="on"
+              filled />
           </div>
 
           <q-btn label="+ Zutat "
                  color="primary"
-                 @click="AddZutat" />
+                 @click="AddIngredient" />
 
 
         </q-card-section>
@@ -184,19 +200,16 @@
 import db from "src/router/db";
 
 export default {
-  name: 'PageAddMeal',
+  name: 'PageChangeMeal',
   props: {
     msg: String
   },
   data(){
     return {
       meals:[],
-      gerichtname: '',
-      zubereitung: '',
       options: [],
-      DialogShowMealObject: { Displayname: "", Zubereitung:"" ,ImageUrl: "", Time: 0, Calorie: 0, Id: 0 }, // Backing Field for Show Meal Dialog
-      DialogShowZutatliste:[{ Name: '', Gramm:'',stueckodermenge: '', Id:0}],
-      DialogShowZutatliste2:[{ Name: '', Gramm:'',stueckodermenge: '', Id:0}],
+      DialogShowMealObject: { Displayname: "", Preparation:"" ,ImageUrl: "", Time: 0, Calorie: 0, Id: 0 }, // Backing Field for Show Meal Dialog
+      DialogShowIngredientList:[{ Name: '', Gramm:'', Id:0}],
       DialogShowMeal: false, // Visibility boolean for Show Meal Dialog
       DialogAdditMeal: false, // Visibility boolean for Add/Edit Meal Dialog
 
@@ -207,28 +220,25 @@ export default {
   },
   methods : {
     AddMeal(){
-      this.DialogShowMealObject = { Displayname: "", Zubereitung: "",Time: 0, Calorie: 0, Id: 0 };
-      this.DialogShowZutatliste = [];
+      this.DialogShowMealObject = { DisplayName: "", Preparation: "",Time: 0, Calorie: 0, Id: 0 };
+      this.DialogShowIngredientList = [];
       this.DialogAdditMeal = true;
     },
 
     LoadMeals(){
       this.meals = [];
-      db.collection('Rezepte').orderBy("DisplayName").get().then( rezepte => {
-        rezepte.forEach(rezept => {
-          console.log(rezept.id + rezepte);
+      db.collection('Rezepte').orderBy("DisplayName").get().then( meals => {
+        meals.forEach(meal => {
           let ShoppingListObject = {
-            DisplayName: rezept.data().DisplayName,
-            Zubereitung: rezept.data().Zubereitung,
+            DisplayName: meal.data().DisplayName,
+            Preparation: meal.data().Zubereitung,
             CalorieSum: 0,
-            id: rezept.id
+            id: meal.id
           }
 
-          ShoppingListObject.ImageUrl = (rezept.data().ImageUrl !== undefined ) ? rezept.data().ImageUrl : "";
+          ShoppingListObject.ImageUrl = (meal.data().ImageUrl !== undefined ) ? meal.data().ImageUrl : "";
 
-
-          //foreach zutat let ShoppingListObject + Kalorien
-          rezept.data().Zutaten.forEach(zutatRef => {
+          meal.data().Zutaten.forEach(zutatRef => {
             db.collection('Zutaten').doc(zutatRef.Path.id).get().then(zutatObj => {
               ShoppingListObject.CalorieSum += Math.floor(zutatObj.data().CaloriesPer100g * (zutatRef.Gramm/100));
             })
@@ -250,22 +260,21 @@ export default {
         return 0;
       });
 
-      this.loadZutatenOptions();
+      this.loadIntegredientOptions();
     },
 
-    AddZutat() {
-      this.DialogShowZutatliste.push({
+    AddIngredient() {
+      this.DialogShowIngredientList.push({
         Name: '',
         Menge: ''
       })
     },
 
-    CloseNewZutat(counter) {
-      this.DialogShowZutatliste.splice(counter, 1);
+    CloseNewIngredient(counter) {
+      this.DialogShowIngredientList.splice(counter, 1);
     },
 
     filterFn (val, update, abort) {
-      console.log(this.options.length);
       if (this.options.length != 0) {
         update()
         return
@@ -273,71 +282,68 @@ export default {
 
       setTimeout(() => {
         update(() => {
-          this.loadZutatenOptions()
+          this.loadIntegredientOptions()
         })
       }, 3000)
     },
 
     abortFilterFn () {
-      // console.log('delayed filter aborted')
+
     },
 
-    async loadZutatenOptions()
+    async loadIntegredientOptions()
     {
       this.options = [];
       db.collection('Zutaten').orderBy("DisplayName").get().then( zutatObj => {
         zutatObj.forEach(zutat => {
-          this.options.push(zutat.data().DisplayName);
+          this.options.push({DisplayName: zutat.data().DisplayName,CaloriesPer100g: zutat.data().CaloriesPer100g});
         })
       })
     },
 
     async DialogAdditSaveToDatabase() {
-      let liste = [];
+      let list = [];
       let isValidated = false;
       let isSavedToDatabase = false;
 
       isValidated = await this.$refs.AdditForm.validate();
 
+      console.log(isValidated);
       if(isValidated === true)
       {
-        console.log("IsValidated");
+        for (let i = 0; i < this.DialogShowIngredientList.length; i++) {
+          // TODO lookup for this Zutat
 
-        for (let i = 0; i < this.DialogShowZutatliste.length; i++) {
-          //lookup for this Zutat
-
-          let gramm = this.DialogShowZutatliste[i].Gramm;
-          if(this.DialogShowZutatliste[i].DisplayName !== "") {
+          let gramm = this.DialogShowIngredientList[i].Gramm;
+          if(this.DialogShowIngredientList[i].DisplayName !== "") {
             //TODO add zutat if not available
 
-          await db.collection("Zutaten").add({
-            DisplayName: this.DialogShowZutatliste[i].DisplayName,
-            CaloriesPer100g:  parseInt(this.DialogShowZutatliste[i].CaloriesPer100g)
-          })
-            .then(function (docRef) {
-              console.log("(Zutat)Document written with ID: ", docRef.id);
+            if (this.DialogShowIngredientList[i].Id == 0) {
+              await db.collection("Zutaten").add({
+                DisplayName: this.DialogShowIngredientList[i].DisplayName,
+                CaloriesPer100g: parseInt(this.DialogShowIngredientList[i].CaloriesPer100g)
+              })
+                .then(function (docRef) {
+                  list.push({Path: db.collection('Zutaten').doc(docRef.id), Gramm: parseInt(gramm)});
+                })
+                .catch(function (error) {
+                  console.error("(Zutat)Error adding document: ", error);
+                });
+            }
 
-              liste.push({Path: db.collection('Zutaten').doc(docRef.id), Gramm: parseInt(gramm)});
-            })
-            .catch(function (error) {
-              console.error("(Zutat)Error adding document: ", error);
-            });
+
           }
         };
 
-        console.log("Liste:" + liste);
-        console.log("(Rezept) ID:" +this.DialogShowMealObject.Id);
-
-        let imagurUrl = (this.DialogShowMealObject.ImageUrl !== undefined) ? this.DialogShowMealObject.ImageUrl : "";
+       let imagurUrl = (this.DialogShowMealObject.ImageUrl !== undefined) ? this.DialogShowMealObject.ImageUrl : "";
           if(this.DialogShowMealObject.Id == 0) {
              await db.collection("Rezepte").add({
               DisplayName: this.DialogShowMealObject.DisplayName,
-              Zubereitung: this.DialogShowMealObject.Zubereitung,
+              Zubereitung: this.DialogShowMealObject.Preparation,
               ImageUrl : imagurUrl,
-              Zutaten: liste
+              Zutaten: list
             })
               .then(function (docRef) {
-                console.log("(Rezept)Document successfully written!: " + docRef.id);
                 isSavedToDatabase = true;
               })
               .catch(function (error) {
@@ -348,11 +354,10 @@ export default {
           {
             await db.collection("Rezepte").doc(this.DialogShowMealObject.Id).update({
               DisplayName: this.DialogShowMealObject.DisplayName,
-              Zubereitung: this.DialogShowMealObject.Zubereitung,
-              Zutaten: liste
+              Zubereitung: this.DialogShowMealObject.Preparation,
+              Zutaten: list
             })
               .then(function () {
-                console.log("Document successfully written!");
                 isSavedToDatabase = true;
               })
               .catch(function (error) {
@@ -365,10 +370,8 @@ export default {
             this.LoadMeals();
           }
           else
-            console.log("Couldnt save to DB");
+            console.error("Couldnt save to DB");
       }
-      else
-        console.log("Not Validated?");
     },
 
     DialogAdditRemoveMeal() {
@@ -379,12 +382,11 @@ export default {
     },
 
     MealClicked(meal) {
-      this.DialogShowZutatliste = [];
+      this.DialogShowIngredientList = [];
       this.DialogShowMeal = true;
-      console.log(meal.id);
       this.DialogShowMealObject.Id = meal.id;
       this.DialogShowMealObject.DisplayName = meal.DisplayName;
-      this.DialogShowMealObject.Zubereitung = meal.Zubereitung;
+      this.DialogShowMealObject.Preparation = meal.Preparation;
       this.DialogShowMealObject.CalorieSum = meal.CalorieSum;
       this.DialogShowMealObject.ImageUrl = meal.ImageUrl;
 
@@ -392,13 +394,8 @@ export default {
       //Read Zutaten
       db.collection('Rezepte').doc(meal.id).get().then(mealObj => {
         mealObj.data().Zutaten.forEach(zutatRef => {
-          console.log("Zutaten: " + zutatRef.Path);
-
-          db.collection('Zutaten').doc(zutatRef.Path.id).get().then(zutatObj => {
-            console.log("DisplayName: " + zutatObj.data().DisplayName);
-            console.log("KalorienPro100g" + zutatObj.data().CaloriesPer100g);
-
-            this.DialogShowZutatliste.push({
+         db.collection('Zutaten').doc(zutatRef.Path.id).get().then(zutatObj => {
+          this.DialogShowIngredientList.push({
               DisplayName: zutatObj.data().DisplayName,
               CaloriesPer100g: zutatObj.data().CaloriesPer100g,
               id: zutatObj.id,
@@ -430,7 +427,7 @@ export default {
   background-color: greenyellow;
 }
 
-.NewZutatContainer{
+.NewIngredientContainer{
   border: 1.5px solid;
   padding:5px;
   margin-bottom: 10px;
@@ -442,17 +439,10 @@ export default {
   cursor: pointer;
 }
 
-#visa {
-  margin: 20px auto;
-  max-width: 700px;
+.DialogInputTextColor{
+  color: #f7c548;
 }
 
-#app {
-font-family: 'Avenir', Helvetica, Arial, sans-serif;
--webkit-font-smoothing: antialiased;
--moz-osx-font-smoothing: grayscale;
-text-align: center;
-color: #2c3e50;
-margin-top: 60px;
-}
+
+
 </style>
