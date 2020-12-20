@@ -69,7 +69,7 @@
         <q-form ref="AdditForm">
           <q-card-section class="items-center">
             <q-input
-              class="DialogInputTextColor"
+              class="text-primary"
               required
               filled
               label-color="green"
@@ -98,8 +98,8 @@
           </q-card-section>
 
           <q-card-section>
-            <div class="NewIngredientContainer" v-for="(ingredient, counter) in DialogShowIngredientList" v-bind:key="counter">
-              <q-btn class="float-right" @click="CloseNewIngredient(counter)" icon="clear" />
+            <div class="q-pa-xs q-ma-xs" v-for="(ingredient, counter) in DialogShowIngredientList" v-bind:key="counter">
+
             <strong>{{counter+1}}.   Zutat:</strong>
 
             <q-card-section horizontal>
@@ -142,19 +142,17 @@
                 :rules="[
               val => val !== null && val !== '' || 'Bitte Menge angeben'
               ]"/>
-
-              <q-btn label="Zutat anlegen"
-                     color="primary"
-                     class="q-pa-xs q-ma-md"
-                     align="right"
-                     @click="AddNewIngredient" />
+              <q-btn class="q-ma-md text-primary" @click="CloseNewIngredient(counter)" icon="clear" />
             </q-card-section>
 
 
 
           </div>
+          <q-card-section horizontal>
+            <q-btn class="q-ma-sm" label="Zutat hinzufügen" color="primary" @click="AddEmptyIngredientToLocalList" />
+            <q-btn class="q-ma-sm" label="Zutat anlegen" color="primary" @click="AddNewIngredient" />
+          </q-card-section>
 
-          <q-btn label="weitere Zutat hinzufügen" color="primary" @click="AddEmptyIngredientToLocalList" />
 
         </q-card-section>
 
@@ -171,40 +169,39 @@
     <!-- New INGREDIENT DIALOG BOX-->
     <q-dialog v-model="DialogNewIngredient">
 
-      <q-card>
+      <q-card style="width: 480px;">
         <q-form ref="NewIngredientForm" class="q-gutter-md">
 
-          <q-card-section class="row items-center q-mx-xl">
-            Neue Zutat hinzufügen:
-            <div class="NewIngredientContainer"
-                 v-model="DialogNewIngredientObject">
+          <q-card-section>
+            <p><strong>Neue Zutat hinzufügen:</strong></p>
+            <div v-model="DialogNewIngredientObject">
+              <q-card-section>
+                <q-input
+                  class="text-primary"
+                  required
+                  filled
+                  label-color="green"
+                  v-model="DialogNewIngredientObject.DisplayName"
+                  label="Zutatenname"
+                  :rules="[
+                val => val !== null && val !== '']"
+                />
 
-              <q-input
-                class="DialogInputTextColor"
-                required
-                filled
-                label-color="green"
-                v-model="DialogNewIngredientObject.DisplayName"
-                label="Zutatname"
-                :rules="[
-              val => val !== null && val !== '']"
-              />
-
-              <q-input
-                filled
-                min="0"
-                type="number"
-                label-color="green"
-                v-model="DialogNewIngredientObject.CaloriesPer100g"
-                label="Kalories per 100g"/>
-
+                <q-input
+                  filled
+                  min="0"
+                  type="number"
+                  label-color="green"
+                  v-model="DialogNewIngredientObject.CaloriesPer100g"
+                  label="Kalorien pro 100g"/>
+              </q-card-section>
             </div>
 
           </q-card-section>
 
           <q-card-actions align="right">
-            <q-btn flat label="Schließen" color="primary" v-close-popup />
-            <q-btn flat type="submit" label="Speichern" color="primary" @click="DialogNewIngredientSaveToDatabase()" />
+            <q-btn outline label="Schließen" color="primary" v-close-popup />
+            <q-btn push type="submit" label="Speichern" color="primary" @click="DialogNewIngredientSaveToDatabase()" />
           </q-card-actions>
 
         </q-form>
@@ -465,30 +462,10 @@ export default {
   margin-bottom: 10px;
 
 }
+
 .Meallistmeal:hover {
   background-color: greenyellow;
   cursor: pointer;
 }
-
-.NewIngredientContainer{
-  border: 1.5px solid;
-  padding:5px;
-  margin-bottom: 10px;
-}
-
-.cancelX{
-  width: 30px;
-  float: right;
-  cursor: pointer;
-  color: red;
-  text-align: center;
-  border: 1.5px solid black;
-}
-
-.DialogInputTextColor{
-  color: #f7c548;
-}
-
-
 
 </style>
