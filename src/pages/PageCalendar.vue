@@ -23,15 +23,15 @@ import db from '/db'
         >
           <template #day-body="{ timestamp }">
             <template v-for="(agenda) in getAgenda(timestamp)">
-              <q-card :key="agenda.Id" :label="agenda.DisplayName" class="bg-primary column items-center text-center q-ma-md"
+              <q-card :key="agenda.Id" :label="agenda.DisplayName" class="bg-primary column items-center text-center q-ma-sm"
                       @click="dialogShowMealObject = agenda; dialogShowMealIsVisible = true">
 
-                  <q-card-section>
+                  <q-card-section class="q-pb-none">
                     <q-avatar>
                       <img :src="agenda.Picture" style="border: white solid 2px;">
                     </q-avatar>
                   </q-card-section>
-                  <q-card-section>
+                  <q-card-section class="q-pt-xs">
                     <strong>{{ agenda.DisplayName }}</strong>
                   </q-card-section>
 
@@ -69,21 +69,29 @@ import db from '/db'
 
         <q-dialog v-model="dialogShowMealIsVisible">
           <q-card style="width: 650px; max-width: 80vw;">
-            <q-card-section class="items-center">
+            <q-card-section class="text-center">
               <strong>{{ dialogShowMealObject.DisplayName }}</strong>
             </q-card-section>
 
             <q-card-section horizontal>
-              <q-img :src="dialogShowMealObject.Picture" class="q-ma-md" style="max-height: 360px; max-width: 360px;" />
+              <q-img :src="dialogShowMealObject.Picture" class="q-ml-md" style="max-height: 360px; max-width: 360px;" />
 
               <q-card-section>
-                <strong>Zutaten:</strong>
-
+                <q-card-section>
+                  <strong>Zutaten:</strong>
+                </q-card-section>
+                <q-card-section>
+                  <q-list>
+                    <q-item v-for="ingredient in dialogShowMealObject.Ingredients">
+                      {{ingredient.Menge}}g {{ingredient.DisplayName}}
+                    </q-item>
+                  </q-list>
+                </q-card-section>
               </q-card-section>
             </q-card-section>
 
             <q-card-section style="max-width: 70vw;">
-              <p>Geplant für den {{ dialogShowMealObject.Time }}</p>
+              <p>Diese Mahlzeit ist geplant für den {{ dialogShowMealObject.Time }} mit einem Brennwert von {{dialogShowMealObject.Calories}} Kalorien</p>
               <p><strong>Zubereitung:</strong></p>
               {{ dialogShowMealObject.Zubereitung }}
             </q-card-section>
@@ -244,32 +252,38 @@ export default {
     },
 
     /**
-     * refill all meal from current week
+     * load all calendar entries for the current week
      */
     getCurrentWeekMeals() {
       this.resetPage()
 
       db.collection('Nutzer').doc("p6it388BP6p236oqniWj").get().then(doc => {
-        doc.data().MealCalendar.forEach(mealRef => {
-          if((mealRef.Date.seconds * 1000) >= (this.currentWeekTime) && (mealRef.Date.seconds * 1000) <= (this.currentWeekTime + (7*24*60*60*1000) - 1000))
+        doc.data().MealCalendar.forEach(calendarEntry => {
+          if((calendarEntry.Date.seconds * 1000) >= (this.currentWeekTime) && (calendarEntry.Date.seconds * 1000) <= (this.currentWeekTime + (7*24*60*60*1000) - 1000))
           {
-            db.collection('Rezepte').doc(mealRef.Rezept.id).get().then(mealObj => {
-              let date = new Date(mealRef.Date.seconds * 1000)
+            db.collection('Rezepte').doc(calendarEntry.Rezept.id).get().then(Recipe => {
+              let date = new Date(calendarEntry.Date.seconds * 1000)
               let day = date.getDay()
-
-              mealObj.data().Zutaten.forEach(zutatRef => {
-                let request = db.collection('Zutaten').doc(zutatRef.Path.id).get().then(zutatObj => {
-                  this.DailyCalorie[new Date(mealRef.Date.seconds * 1000).getDay()] += (Math.floor(zutatObj.data().CaloriesPer100g * (zutatRef.Gramm / 100)))
-                })
-              })
 
               let calendarObj = {
                 Time: date.toLocaleDateString(),
-                Picture: mealObj.data().ImageUrl,
-                DisplayName: mealObj.data().DisplayName,
-                Id: mealRef.ID,
-                Zubereitung: mealObj.data().Zubereitung
+                Picture: Recipe.data().ImageUrl,
+                DisplayName: Recipe.data().DisplayName,
+                Id: calendarEntry.ID,
+                Zubereitung: Recipe.data().Zubereitung,
+                Ingredients: [ ],
+                Calories: 0
               };
+
+              Recipe.data().Zutaten.forEach(async ingredientReference => {
+                await db.collection('Zutaten').doc(ingredientReference.Path.id).get().then(ingredient => {
+                  calendarObj.Ingredients.push({DisplayName: ingredient.data().DisplayName, Menge: ingredientReference.Gramm} )
+                  let calories = Math.floor(ingredient.data().CaloriesPer100g * (ingredientReference.Gramm / 100))
+                  calendarObj.Calories += calories
+                  this.DailyCalorie[new Date(calendarEntry.Date.seconds * 1000).getDay()] += calories
+                })
+              })
+
               this.agenda[day].push(calendarObj)
             })
           }
