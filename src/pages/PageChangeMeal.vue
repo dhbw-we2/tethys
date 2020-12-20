@@ -29,42 +29,36 @@
 
     <!--SHOW MEAL DIALOG BOX-->
     <q-dialog v-model="DialogShowMeal">
-      <q-card>
-        <q-card-section class="row items-center q-mx-xl">
+      <q-card style="width: 650px; max-width: 80vw;">
+        <q-card-section class="text-center">
           <strong>{{ DialogShowMealObject.DisplayName }}</strong>
         </q-card-section>
 
-        <q-card-section class="row items-center">
-          Zubereitung: <br>
+        <q-card-section horizontal>
+          <q-img :src="DialogShowMealObject.ImageUrl" class="q-ml-md" style="max-height: 360px; max-width: 360px;" />
+          <q-card-section>
+            <q-card-section>
+              <strong>Zutaten:</strong>
+            </q-card-section>
+            <q-card-section>
+              <q-list>
+                <q-item v-for="(ingredient, counter) in DialogShowIngredientList" v-bind:key="counter">
+                  {{ingredient.Amount}}g {{ingredient.DisplayName}}
+                </q-item>
+              </q-list>
+            </q-card-section>
+          </q-card-section>
+        </q-card-section>
+
+        <q-card-section>
+          <p>Diese Mahlzeit hat einen Brennwert von {{DialogShowMealObject.CalorieSum}} Kalorien</p>
+          <p><strong>Zubereitung:</strong></p>
           {{ DialogShowMealObject.Preparation }}
         </q-card-section>
 
-
-        <q-card-section class="row items-center">
-          Kalorien: {{ DialogShowMealObject.CalorieSum }}
-        </q-card-section>
-
-        <!-- <q-card-section class="row items-center">
-          ID: {{ DialogShowMealObject.Id }}
-        </q-card-section> -->
-
-        <q-card-section class="row items-center">
-          Zutaten:<br>
-          <div class="NewIngredientContainer"
-               v-for="(ingredients, counter) in DialogShowIngredientList"
-               v-bind:key="counter">
-            Zutat {{counter}}:<br>
-            <!-- DisplayName:--> {{ ingredients.DisplayName }}<br>
-            Menge: {{ ingredients.Amount }}g<br>
-            KalorienPer100g: {{ ingredients.CaloriesPer100g }}
-            <!-- id: {{zutat.id}} -->
-          </div><br>
-        </q-card-section>
-
-        <!-- Notice v-close-popup -->
         <q-card-actions align="right">
-          <q-btn flat label="Schließen" color="primary" v-close-popup />
-          <q-btn flat label="Editieren" color="primary" @click="ShowDialog_EditMeal()" v-close-popup />
+          <q-btn outline label="Schließen" color="primary" v-close-popup />
+          <q-btn push label="Editieren" color="primary" @click="ShowDialog_EditMeal()" v-close-popup />
         </q-card-actions>
       </q-card>
     </q-dialog>
