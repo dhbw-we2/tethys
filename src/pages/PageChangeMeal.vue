@@ -1,26 +1,30 @@
 <template>
-  <q-page class="flex-center">
+  <q-page class="flex-center items-baseline">
 
     <!-- Zutaten vorschlagen, Bevor ZUtat hinzugefügt wírd prüfen, Design, Dokumentation
 
     Ladebalken -->
 
     <!--MEAL LIST-->
-     <h5>Gerichte:</h5>
+    <h5 class="q-pl-md q-ml-xl">Gerichte:</h5>
     <div class="row no-wrap Meallistmeal" @click="MealClicked(m)" v-for="m in meals" >
-      <div class="col-1">
+      <div class="col-1"></div>
+      <div class="col-4 " >
+        <strong>{{ m.DisplayName }}</strong>
+      </div>
+      <div class="col-1" align="right">
         <q-icon name="local_fire_department" color="orange"/>
       </div>
-      <div class="col-1">
-        {{ m.CalorieSum }} kcal
-      </div>
-      <div class="col-4" >
-        <strong>{{ m.DisplayName }}</strong>
+      <div class="col-3">
+        &#8202{{ m.CalorieSum }}&#8198kcal
       </div>
     </div>
 
-    <q-btn label="+ MEAL"
-           color="primary"
+    <q-btn color=primary
+           icon="add"
+           label="Rezept"
+           class="q-ma-md float-right"
+           size="lg"
            @click="AddMeal" />
 
     <!--SHOW MEAL DIALOG BOX-->
@@ -418,8 +422,8 @@ export default {
 <style scoped>
 
 .Meallistmeal{
-  border: 1.5px solid;
-  padding:5px;
+  /*border: 1.5px solid;*/
+  padding:12px;
   margin-bottom: 10px;
 
 }

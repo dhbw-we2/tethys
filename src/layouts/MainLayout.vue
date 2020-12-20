@@ -32,7 +32,7 @@
           <q-btn
             to="/changemeal"
             class="q-mr-sm"
-            icon="eva-file-text-outline"
+            icon="eva-book-open-outline"
             size="18px"
             flat
             round
@@ -45,7 +45,7 @@
         <router-view />
       </q-page-container>
 
-      <q-page-container class="absolute-center small-screen-only" style="padding-top: 33vh; width: 100vw; background:linear-gradient(to bottom, white, rgb(242, 253, 225), rgb(232, 253, 205))">
+      <q-page-container class="absolute-center small-screen-only" style="padding-top: 45px; width: 100vw; background:linear-gradient(to bottom, white, rgb(242, 253, 225), rgb(232, 253, 205))">
         <router-view />
       </q-page-container>
 
@@ -62,7 +62,7 @@
             to="/"
             class="q-mr-sm"
             icon="eva-calendar-outline"
-            size="5vh"
+            size="4vh"
             flat
             round
             dense
@@ -71,7 +71,7 @@
             to="/shoppinglist"
             class=" q-mr-sm"
             icon="eva-shopping-cart-outline"
-            size="5vh"
+            size="4vh"
             flat
             round
             dense
@@ -79,8 +79,8 @@
           <q-btn
             to="/changemeal"
             class="q-mr-sm"
-            icon="eva-file-text-outline"
-            size="5vh"
+            icon="eva-book-open-outline"
+            size="4vh"
             flat
             round
             dense
