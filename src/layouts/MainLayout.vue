@@ -7,7 +7,11 @@
         style="background:linear-gradient(to right,  rgba(232, 253, 205,0.7), #9cec1e, #9cec1e, #9cec1e, #9cec1e, #9cec1e, #9cec1e, rgba(232, 253, 205,0.7) )"
       >
         <q-toolbar class="constrain float float-center">
-
+          <q-img
+            :src="url"
+            spinner-color="transparent"
+            style="max-width: 32px"
+          />
           <q-toolbar-title class="text-roboto text-bold">
             Meal-O-Mat
           </q-toolbar-title>
@@ -98,7 +102,7 @@ export default {
 
   data () {
     return {
-
+      url: 'icon.ico'
     }
   }
 }

@@ -10,7 +10,7 @@
       Sorry, nothing here...<strong>(404)</strong>
     </p>
     <q-btn
-      color="secondary"
+      color="negative"
       style="width:200px;"
       to="/"
       label="Go back"
