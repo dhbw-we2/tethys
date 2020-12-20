@@ -19,26 +19,27 @@ import db from '/db'
           transition-prev="slide-right"
           transition-next="slide-left"
           locale="de-de"
-          style="min-height: 400px; height: 100%;"
+          style="min-height: 100px;"
         >
           <template #day-body="{ timestamp }">
             <template v-for="(agenda) in getAgenda(timestamp)">
-              <div
-                :key="agenda.Id"
-                :label="agenda.DisplayName"
-                class="justify-start q-ma-sm bg-primary "
-              >
-                <q-btn class="row justify-center q-mt-lg" @click="dialogShowMealObject = agenda; dialogShowMealIsVisible = true">
-                  <div>
+              <q-card :key="agenda.Id" :label="agenda.DisplayName" class="bg-primary column items-center text-center q-ma-md"
+                      @click="dialogShowMealObject = agenda; dialogShowMealIsVisible = true">
+
+                  <q-card-section>
                     <q-avatar>
                       <img :src="agenda.Picture" style="border: white solid 2px;">
                     </q-avatar>
-                  </div>
-                  <div class="col-12 q-px-sm">
+                  </q-card-section>
+                  <q-card-section>
                     <strong>{{ agenda.DisplayName }}</strong>
-                  </div>
-                </q-btn>
-              </div>
+                  </q-card-section>
+
+                  <q-tooltip content-class="bg-white text-black">
+                    <strong>Für mehr Infos klicken!</strong>
+                  </q-tooltip>
+
+              </q-card>
             </template>
           </template>
         </q-calendar>
@@ -67,23 +68,23 @@ import db from '/db'
         </div>
 
         <q-dialog v-model="dialogShowMealIsVisible">
-          <q-card>
-            <q-card-section class="row items-center q-mx-xl">
+          <q-card style="width: 650px; max-width: 80vw;">
+            <q-card-section class="items-center">
               <strong>{{ dialogShowMealObject.DisplayName }}</strong>
             </q-card-section>
 
+            <q-card-section horizontal>
+              <q-img :src="dialogShowMealObject.Picture" class="q-ma-md" style="max-height: 360px; max-width: 360px;" />
 
+              <q-card-section>
+                <strong>Zutaten:</strong>
 
-            <q-card-section>
-              <img :src="dialogShowMealObject.Picture" style="max-height: 360px; max-width: 360px;">
+              </q-card-section>
             </q-card-section>
 
-            <q-card-section class="row items-center">
-              <strong>Geplant am: {{ dialogShowMealObject.Time }}</strong>
-            </q-card-section>
-
-            <q-card-section style="max-width: 360px;">
-              <strong>Zubereitung:</strong><br />
+            <q-card-section style="max-width: 70vw;">
+              <p>Geplant für den {{ dialogShowMealObject.Time }}</p>
+              <p><strong>Zubereitung:</strong></p>
               {{ dialogShowMealObject.Zubereitung }}
             </q-card-section>
 
@@ -276,7 +277,7 @@ export default {
       })
     },
 
-    getAvailableRezepte(){
+    getAvailableReceipes(){
       db.collection('Rezepte').get().then(rezepte => {
         rezepte.forEach(rezept => {
           this.dialogAddCalendarEntryRecipes.push({label: rezept.data().DisplayName, id: rezept.id})
@@ -311,12 +312,12 @@ export default {
     switch(day)
     {
       case 0: day = 7 //sunday = 0 remove 6 days to align to monday
-      default: day -= 1; //day aligns to sunday = 0; so remove one less (monday = 1)
+      default: day -= 1; //day aligns to sunday = 0; so remove one more (monday = 1)
                this.currentWeekTime -= (day * 24 * 60 * 60 * 1000)
                break;
     }
     this.getCurrentWeekMeals()
-    this.getAvailableRezepte()
+    this.getAvailableReceipes()
   }
 }
 </script>
