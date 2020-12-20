@@ -74,7 +74,7 @@ import db from '/db'
               </q-card-section>
               <q-card-section>
                 <q-list>
-                  <q-item v-for="ingredient in dialogShowMealObject.Ingredients" :key="dialogShowMealObject.Id">
+                  <q-item v-for="ingredient in dialogShowMealObject.Ingredients" :key="getRandomID()">
                     {{ingredient.Amount}}g {{ingredient.DisplayName}}
                   </q-item>
                 </q-list>
@@ -137,7 +137,7 @@ export default {
       dialogAddCalendarEntrySelectedRecipe: null, // Backing Field for new Meal Dialog - Selected Recipe
 
       dialogShowMealIsVisible: false, // Visibility boolean for Show Meal Dialog
-      dialogShowMealObject: { Displayname: "", Time: 0, Id: 0, Picture: "", Zubereitung: "" }, // Backing Field for Show Meal Dialog
+      dialogShowMealObject: { DisplayName: "", Time: 0, Id: 0, Picture: "", Zubereitung: "" }, // Backing Field for Show Meal Dialog
 
       currentWeekTime:0, // TimeStamp of the beginning of the current week (Monday)
       selectedDate: '', // Backing Field for q-calendar
@@ -211,12 +211,12 @@ export default {
      * This functions will add a new entry to the calendar and triggers a refresh of the backing fields
      */
     AddMealToCalendar() {
-      var UserRef = db.collection('Nutzer').doc("p6it388BP6p236oqniWj")
-      var RezeptRef = db.collection('Rezepte').doc(this.dialogAddCalendarEntrySelectedRecipe.id)
-      var newMealObj = { Date: new Date(this.dialogAddCalendarEntrySelectedDate), Rezept: RezeptRef, ID: this.getRandomID()}
+      var UserReference = db.collection('Nutzer').doc("p6it388BP6p236oqniWj")
+      var RezeptReference = db.collection('Rezepte').doc(this.dialogAddCalendarEntrySelectedRecipe.id)
+      var newCalendarEntry = { Date: new Date(this.dialogAddCalendarEntrySelectedDate), Rezept: RezeptReference, ID: this.getRandomID()}
 
-      UserRef.update({
-        MealCalendar: firebase.firestore.FieldValue.arrayUnion(newMealObj)
+      UserReference.update({
+        MealCalendar: firebase.firestore.FieldValue.arrayUnion(newCalendarEntry)
       }).then(object => {
         this.getCurrentWeekCalendarEntries()
       })
@@ -249,8 +249,8 @@ export default {
     getCurrentWeekCalendarEntries() {
       this.resetPage()
 
-      db.collection('Nutzer').doc("p6it388BP6p236oqniWj").get().then(doc => {
-        doc.data().MealCalendar.forEach(calendarEntry => {
+      db.collection('Nutzer').doc("p6it388BP6p236oqniWj").get().then(UserReference => {
+        UserReference.data().MealCalendar.forEach(calendarEntry => {
           if((calendarEntry.Date.seconds * 1000) >= (this.currentWeekTime) && (calendarEntry.Date.seconds * 1000) <= (this.currentWeekTime + (7*24*60*60*1000) - 1000))
           {
             db.collection('Rezepte').doc(calendarEntry.Rezept.id).get().then(Recipe => {
