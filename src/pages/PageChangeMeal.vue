@@ -1,10 +1,6 @@
 <template>
   <q-page class="flex-center items-baseline">
 
-    <!-- Design, Dokumentation
-
-    Ladebalken -->
-
     <!--MEAL LIST-->
     <h5 class="q-pl-md q-ml-xl">Gerichte:</h5>
     <div class="row no-wrap Meallistmeal" @click="MealClicked(m)" v-for="m in meals" >
@@ -118,7 +114,6 @@
                 :option-label = "(opt) => {if(opt.DisplayName !== undefined){return opt.DisplayName + ' (' + opt.CaloriesPer100g + 'kcal)'}}"
                 @input="(opt) => { SelectOptionToIngredient(ingredient,opt); }"
                 @filter="filterFn"
-                @filter-abort="abortFilterFn"
               >
                 <template v-slot:no-option>
                   <q-item>
@@ -213,6 +208,7 @@
 
 <script>
 import db from "src/router/db";
+import firebase from "firebase";
 
 export default {
   name: 'PageChangeMeal',
@@ -221,27 +217,39 @@ export default {
   },
   data(){
     return {
-      meals:[],
-      options: [],
+      meals:[], // Global List of Meals
+      options: [], // Ingredient-QSelect Options containing ingredients
       DialogShowMealObject: { Displayname: "", Preparation:"" ,ImageUrl: "", Time: 0, Calorie: 0, Id: 0 }, // Backing Field for Show Meal Dialog
-      DialogNewIngredientObject: { Displayname: "",  Calorie: 0 },
-      DialogShowIngredientList:[{ Name: '', Amount:'', Id:0}],
+      DialogNewIngredientObject: { Displayname: "",  Calorie: 0 },// Backing Field for New Ingredient Dialog
+      DialogShowIngredientList:[{ Name: '', Amount:'', Id:0}],// Backing Field for New Ingredient Dialog
       DialogShowMeal: false, // Visibility boolean for Show Meal Dialog
       DialogAdditMeal: false, // Visibility boolean for Add/Edit Meal Dialog
       DialogNewIngredient: false, // Visibility boolean for New Ingredient Dialog,
 
     }
   },
+
+  /**
+   * Function loaded when site is created
+   */
   async created() {
     this.LoadMeals();
   },
   methods : {
+
+    /**
+     * Refreshes DialogShow-related Objects: DialogShowMealObject and DialogShowIngredientList
+     * Opens up "AddItMeal" - Dialogue
+     */
     AddMeal(){
       this.DialogShowMealObject = { DisplayName: "", Preparation: "",Time: 0, Calorie: 0, Id: 0 };
       this.DialogShowIngredientList = [];
       this.DialogAdditMeal = true;
     },
 
+    /**
+     * Fill Page's Meal-Tables with Meals from Firestore
+     */
     LoadMeals(){
       this.meals = [];
       db.collection('Rezepte').orderBy("DisplayName").get().then( meals => {
@@ -277,9 +285,12 @@ export default {
         return 0;
       });
 
-      this.loadIntegredientOptions();
+      this.loadIngredientOptions();
     },
 
+    /**
+     * Add new empty Ingedrient-Object to DialogShowIngredientList
+     */
     AddEmptyIngredientToLocalList() {
       this.DialogShowIngredientList.push({
         Name: '',
@@ -287,25 +298,43 @@ export default {
       })
     },
 
+    /**
+     * Clear DialogNewIngredientObject's values
+     * Open up New Ingedrient - Dialog
+     */
     AddNewIngredient() {
       this.DialogNewIngredientObject = { Displayname: "",  Calorie: 0 },
       this.DialogNewIngredient = true;
     },
 
+    /**
+     * Delete specific Object from DialogShowIngredientList
+     * @param counter -id to remove from DialogShowIngredientList
+     */
     CloseNewIngredient(counter) {
       this.DialogShowIngredientList.splice(counter, 1);
     },
 
+    /**
+     * Changed-Method of QInput-Select
+     * Sets ingredients values to selected Object by QSelect-Control
+     * @param ingredient - the iterated ingredient
+     * @param opt - option value of QSelect-Control
+      */
     SelectOptionToIngredient(ingredient,opt){
       if(opt !== undefined || opt != null) {
-        console.log(opt.CaloriesPer100g);
         ingredient.DisplayName = opt.DisplayName;
         ingredient.CaloriesPer100g = opt.CaloriesPer100g;
         ingredient.id = opt.id;
       }
     },
 
-    filterFn (val, update, abort) {
+    /**
+     * QSelect-Control: Method to load option values
+     * @param val - filter value
+     * @param update - callback-update function
+     */
+    filterFn (val, update) {
       if (this.options.length != 0) {
         update()
         return
@@ -313,16 +342,15 @@ export default {
 
       setTimeout(() => {
         update(() => {
-          this.loadIntegredientOptions()
+          this.loadIngredientOptions()
         })
       }, 3000)
     },
 
-    abortFilterFn () {
-
-    },
-
-    async loadIntegredientOptions()
+    /**
+     * Load Ingedredients-List out of Firestore DB
+     */
+    async loadIngredientOptions()
     {
       this.options = [];
       db.collection('Zutaten').orderBy("DisplayName").get().then( ingredientObj => {
@@ -332,6 +360,9 @@ export default {
       })
     },
 
+    /**
+     * Save AddIt-Dialog Values to Firestore Database.
+     */
     async DialogAdditSaveToDatabase() {
       let list = [];
       let isValidated = false;
@@ -339,19 +370,16 @@ export default {
 
       isValidated = await this.$refs.AdditForm.validate();
 
-      console.log(isValidated);
       if(isValidated === true)
       {
         for (let i = 0; i < this.DialogShowIngredientList.length; i++) {
 
           if(this.DialogShowIngredientList[i].DisplayName !== "" && this.DialogShowIngredientList[i].DisplayName !== undefined) {
-            console.log(this.DialogShowIngredientList[i].DisplayName)
             let createNewEntry = true;
             let amount = this.DialogShowIngredientList[i].Amount;
 
             let ingredientsQueriedRef = await db.collection("Zutaten").where("DisplayName", "==", this.DialogShowIngredientList[i].DisplayName).where("CaloriesPer100g", "==", this.DialogShowIngredientList[i].CaloriesPer100g).get();
             if (ingredientsQueriedRef.size >= 0) {
-              console.log(ingredientsQueriedRef.docs[0].id);
                list.push({Path: db.collection('Zutaten').doc(ingredientsQueriedRef.docs[0].id), Gramm: parseInt(amount)});
             }
           }
@@ -396,6 +424,9 @@ export default {
       }
     },
 
+    /**
+     * Save NewIngredient-Dialog Values to Firestore Database.
+     */
     async DialogNewIngredientSaveToDatabase()
     {
       await db.collection("Zutaten").add({
@@ -409,17 +440,32 @@ export default {
           console.error("(Zutat)Error adding document: ", error);
         });
 
-      await this.loadIntegredientOptions();
+      await this.loadIngredientOptions();
       this.DialogNewIngredient = false;
     },
 
+    /**
+     * Callback-Function to Delete current AddIt-Dialog Meal
+     */
     async DialogAdditRemoveMeal() {
+
       if(this.DialogShowMealObject.Id != 0)
         await db.collection("Rezepte").doc(this.DialogShowMealObject.Id).delete();
+
+      let userRef =  db.collection("Nutzer").doc("p6it388BP6p236oqniWj");
+      let user = await userRef.get();
+      user.data().MealCalendar.forEach(calendarEntry => {
+        if (calendarEntry.Rezept.id == this.DialogShowMealObject.Id) {
+          userRef.update({MealCalendar: firebase.firestore.FieldValue.arrayRemove(calendarEntry)})
+        }
+      })
 
       this.LoadMeals();
     },
 
+    /**
+     * Callback-Function to show Dialog with clicked Meal out of the Mealtable
+     */
     MealClicked(meal) {
       this.DialogShowIngredientList = [];
       this.DialogShowMeal = true;
@@ -445,6 +491,10 @@ export default {
       })
     },
 
+    /**
+     * Switch from Show-Dialog to AddIt-Dialog
+     * @param meal - filter value
+     */
     ShowDialog_EditMeal(meal){
       this.DialogShowMeal = false;
       this.DialogAdditMeal = true;
