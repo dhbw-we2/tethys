@@ -65,104 +65,103 @@
 
     <!-- ADD/EDIT(Addit) MEAL DIALOG BOX-->
     <q-dialog v-model="DialogAdditMeal">
-      <q-card>
-        <q-form ref="AdditForm" class="q-gutter-md">
-
-        <q-card-section class="row items-center q-mx-xl">
-
-          <q-input
-            class="DialogInputTextColor"
-            required
-            filled
-            label-color="green"
-            v-model="DialogShowMealObject.DisplayName"
-            label="Gerichtname"
-            :rules="[
-              val => val !== null && val !== '']"
-          />
-
-          <q-input
-            filled
-            label-color="green"
-            v-model="DialogShowMealObject.ImageUrl"
-            label="Bild-URL"
-          />
-
-          <q-input
-            filled
-            required
-            autogrow
-            label-color="green"
-            v-model="DialogShowMealObject.Preparation"
-            label="Zubereitung:"
-            type="textarea"
-            :rules="[
-              val => val !== null && val !== '']"
-          />
-
-          <div class="NewIngredientContainer"
-               v-for="(ingredient, counter) in DialogShowIngredientList"
-               v-bind:key="counter">
-            <span class="cancelX" @click="CloseNewIngredient(counter)">x</span>
-            <label>{{counter+1}}.   Zutat:</label>
-
-
-            <q-select
-              required
-              filled
-              use-input
-              label-color="green"
-              hide-selected
-              fill-input
-              :value="ingredient"
-              label="Zutat"
-              :options="options"
-              :option-value = "opt => opt.DisplayName"
-              :option-label = "(opt) => {if(opt.DisplayName !== undefined){return opt.DisplayName + ' (' + opt.CaloriesPer100g + 'kcal)'}}"
-              @input="(opt) => { SelectOptionToIngredient(ingredient,opt); }"
-              @filter="filterFn"
-              @filter-abort="abortFilterFn"
-              style="width: 250px"
-            >
-              <template v-slot:no-option>
-                <q-item>
-                  <q-item-section class="text-grey">
-                    No results
-                  </q-item-section>
-                </q-item>
-              </template>
-            </q-select>
-
-            <q-btn label="*Neu*"
-                   color="primary"
-                   @click="AddNewIngredient" />
-
+      <q-card style="width: 650px; max-width: 80vw;">
+        <q-form ref="AdditForm">
+          <q-card-section class="items-center">
             <q-input
+              class="DialogInputTextColor"
               required
               filled
-              min="0"
               label-color="green"
-              type="number"
-              v-model="ingredient.Amount"
-              label="Menge in Gramm"
-              lazy-rules
+              v-model="DialogShowMealObject.DisplayName"
+              label="Gerichtname"
               :rules="[
+              val => val !== null && val !== '']"
+            />
+          </q-card-section>
+          <q-card-section>
+            <q-input filled label-color="green" v-model="DialogShowMealObject.ImageUrl" label="Bild-URL" />
+          </q-card-section>
+
+          <q-card-section>
+            <q-input
+              filled
+              required
+              autogrow
+              label-color="green"
+              v-model="DialogShowMealObject.Preparation"
+              label="Zubereitung:"
+              type="textarea"
+              :rules="[
+              val => val !== null && val !== '']"
+            />
+          </q-card-section>
+
+          <q-card-section>
+            <div class="NewIngredientContainer" v-for="(ingredient, counter) in DialogShowIngredientList" v-bind:key="counter">
+              <q-btn class="float-right" @click="CloseNewIngredient(counter)" icon="clear" />
+            <strong>{{counter+1}}.   Zutat:</strong>
+
+            <q-card-section horizontal>
+              <q-select
+                required
+                filled
+                use-input
+                label-color="green"
+                hide-selected
+                fill-input
+                class="q-pa-xs"
+                :value="ingredient"
+                label="Zutat"
+                :options="options"
+                :option-value = "opt => opt.DisplayName"
+                :option-label = "(opt) => {if(opt.DisplayName !== undefined){return opt.DisplayName + ' (' + opt.CaloriesPer100g + 'kcal)'}}"
+                @input="(opt) => { SelectOptionToIngredient(ingredient,opt); }"
+                @filter="filterFn"
+                @filter-abort="abortFilterFn"
+              >
+                <template v-slot:no-option>
+                  <q-item>
+                    <q-item-section class="text-grey">
+                      No results
+                    </q-item-section>
+                  </q-item>
+                </template>
+              </q-select>
+
+              <q-input
+                required
+                filled
+                min="0"
+                class="q-pa-xs"
+                label-color="green"
+                type="number"
+                v-model="ingredient.Amount"
+                label="Menge in Gramm"
+                lazy-rules
+                :rules="[
               val => val !== null && val !== '' || 'Bitte Menge angeben'
               ]"/>
 
+              <q-btn label="Zutat anlegen"
+                     color="primary"
+                     class="q-pa-xs q-ma-md"
+                     align="right"
+                     @click="AddNewIngredient" />
+            </q-card-section>
+
+
+
           </div>
 
-          <q-btn label="+ Zutat "
-                 color="primary"
-                 @click="AddEmptyIngredientToLocalList" />
-
+          <q-btn label="weitere Zutat hinzufügen" color="primary" @click="AddEmptyIngredientToLocalList" />
 
         </q-card-section>
 
         <q-card-actions align="right">
-          <q-btn flat label="Schließen" color="primary" v-close-popup />
-          <q-btn flat label="Entfernen" color="primary" @click="DialogAdditRemoveMeal()" v-close-popup />
-          <q-btn flat type="submit" label="Speichern" color="primary" @click="DialogAdditSaveToDatabase()" />
+          <q-btn outline label="Schließen" color="primary" v-close-popup />
+          <q-btn push label="Entfernen" color="primary" @click="DialogAdditRemoveMeal()" v-close-popup />
+          <q-btn push type="submit" label="Speichern" color="primary" @click="DialogAdditSaveToDatabase()" />
         </q-card-actions>
 
         </q-form>
