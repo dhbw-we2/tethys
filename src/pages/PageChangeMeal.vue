@@ -1,7 +1,9 @@
 <template>
   <q-page class="flex-center">
 
-    <!--  Color in Dialog not green, Liste refreshen nach Add,Delete,Edit; Zutaten vorschlagen-->
+    <!--  Color in Dialog not green, Zutaten vorschlagen, Bevor ZUtat hinzugefügt wírd prüfen, Design, Verenglische, Dokumentation, Kommentare/Console raus
+
+    Ladebalken -->
 
     <!--MEAL LIST-->
      <h5>Gerichte:</h5>
@@ -80,22 +82,9 @@
           />
 
           <q-input
-            required
             filled v-model="DialogShowMealObject.ImageUrl"
             label="Bild-URL"
           />
-
-          <!-- <q-select  filled
-                     :value="model"
-                     use-input
-                     hide-selected
-                     fill-input
-                     input-debounce="0"
-                     :options="zutatOptions"
-                     @filter="filterFn"
-                     @input-value="setModel"
-                     hint=""
-                     style="width: 250px; padding-bottom: 32px"/> -->
 
           <q-input
             ref="zubereitung"
@@ -109,7 +98,6 @@
             :rules="[ val => val && val.length > 0 || 'Please type something']"
           />
 
-
           <div class="NewZutatContainer"
                v-for="(zutat, counter) in DialogShowZutatliste"
                v-bind:key="counter">
@@ -122,6 +110,30 @@
               required
               autocomplete="on"
               filled />
+
+            <q-select
+              filled
+              :value="zutat.DisplayName"
+              use-input
+              hide-selected
+              fill-input
+              input-debounce="0"
+              v-model="zutat.DisplayName"
+              label="Zutat"
+              :options="options"
+              @input-value="(val) => {zutat.DisplayName = val}"
+              @filter="filterFn"
+              @filter-abort="abortFilterFn"
+              style="width: 250px"
+            >
+              <template v-slot:no-option>
+                <q-item>
+                  <q-item-section class="text-grey">
+                    No results
+                  </q-item-section>
+                </q-item>
+              </template>
+            </q-select>
 
             <q-input
               required
@@ -181,60 +193,17 @@ export default {
       meals:[],
       gerichtname: '',
       zubereitung: '',
-      options: ['Stück', 'Gramm'],
+      options: [],
       DialogShowMealObject: { Displayname: "", Zubereitung:"" ,ImageUrl: "", Time: 0, Calorie: 0, Id: 0 }, // Backing Field for Show Meal Dialog
       DialogShowZutatliste:[{ Name: '', Gramm:'',stueckodermenge: '', Id:0}],
       DialogShowZutatliste2:[{ Name: '', Gramm:'',stueckodermenge: '', Id:0}],
       DialogShowMeal: false, // Visibility boolean for Show Meal Dialog
-      DialogAdditMeal: false, // Visibility boolean for Edit Meal Dialog
+      DialogAdditMeal: false, // Visibility boolean for Add/Edit Meal Dialog
 
     }
   },
   async created() {
-    //getPlannedMeals
-    let currentTime = Math.floor(Date.now() / 1000);
-    currentTime -= (new Date(currentTime).getSeconds() * 1000) //Remove Seconds
-    currentTime -= (new Date(currentTime).getMinutes() * 60 * 1000) //Remove Minutes
-    currentTime -= (new Date(currentTime).getHours() * 60 * 60 * 1000) //Remove Hours
-    console.log(currentTime)
-    //
-     db.collection('Rezepte').orderBy("DisplayName").get().then( rezepte => {
-        rezepte.forEach(rezept => {
-          console.log(rezept.id + rezepte);
-          let ShoppingListObject = {
-            DisplayName: rezept.data().DisplayName,
-            Zubereitung: rezept.data().Zubereitung,
-            ImageUrl: rezept.data().ImageUrl,
-            CalorieSum: 0,
-            id: rezept.id
-          }
-
-          //foreach zutat let ShoppingListObject + Kalorien
-          rezept.data().Zutaten.forEach(zutatRef => {
-            db.collection('Zutaten').doc(zutatRef.Path.id).get().then(zutatObj => {
-              console.log("DisplayName: " + zutatObj.data().DisplayName);
-              console.log("Calorie: " + zutatObj.data().CaloriesPer100g);
-              console.log("CalorieAdded: " + ShoppingListObject.CalorieSum);
-              ShoppingListObject.CalorieSum += Math.floor(zutatObj.data().CaloriesPer100g * (zutatRef.Gramm/100));
-            })
-          })
-
-          this.addElementUniqueToShoppingList(ShoppingListObject);
-        })
-    });
-
-    this.meals.sort(function(a, b) {
-      var nameA = a.name.toUpperCase();
-      var nameB = b.name.toUpperCase();
-      if (nameA < nameB) {
-        return -1;
-      }
-      if (nameA > nameB) {
-        return 1;
-      }
-      return 0;
-    });
-    console.log(this.meals);
+    this.LoadMeals();
   },
   methods : {
     AddMeal(){
@@ -243,34 +212,84 @@ export default {
       this.DialogAdditMeal = true;
     },
 
-    DialogDeleteZutat(zutat){
-      //DB DELETE
-      //db.collection('Zutaten').doc(zutat.id).get().then(zutatObj => {
-      //    console.log("DisplayName: " + zutatObj.data().DisplayName);
-      //    console.log("KalorienPro100g" + zutatObj.data().KalorienPro100g);
+    LoadMeals(){
+      this.meals = [];
+      db.collection('Rezepte').orderBy("DisplayName").get().then( rezepte => {
+        rezepte.forEach(rezept => {
+          console.log(rezept.id + rezepte);
+          let ShoppingListObject = {
+            DisplayName: rezept.data().DisplayName,
+            Zubereitung: rezept.data().Zubereitung,
+            CalorieSum: 0,
+            id: rezept.id
+          }
 
-      //LIST DELETE
-      this.DialogShowZutatliste.splice(this.DialogShowZutatliste.indexOf(zutat),1);
+          ShoppingListObject.ImageUrl = (rezept.data().ImageUrl !== undefined ) ? rezept.data().ImageUrl : "";
+
+
+          //foreach zutat let ShoppingListObject + Kalorien
+          rezept.data().Zutaten.forEach(zutatRef => {
+            db.collection('Zutaten').doc(zutatRef.Path.id).get().then(zutatObj => {
+              ShoppingListObject.CalorieSum += Math.floor(zutatObj.data().CaloriesPer100g * (zutatRef.Gramm/100));
+            })
+          })
+
+          this.meals.push(ShoppingListObject)
+        })
+      });
+
+      this.meals.sort(function(a, b) {
+        var nameA = a.name.toUpperCase();
+        var nameB = b.name.toUpperCase();
+        if (nameA < nameB) {
+          return -1;
+        }
+        if (nameA > nameB) {
+          return 1;
+        }
+        return 0;
+      });
+
+      this.loadZutatenOptions();
     },
 
-    addElementUniqueToShoppingList(shoppingListObject) {
-      //for (let i = 0; i < this.meals.length; i++) {
-      //   if (this.meals[i].id == shoppingListObject.id) {
-      //    this.meals[i].Zubereitung += shoppingListObject.Zubereitung
-      //    return;
-      //  }
-      // }
-      this.meals.push(shoppingListObject)
-      return
-    },
     AddZutat() {
       this.DialogShowZutatliste.push({
         Name: '',
         Menge: ''
       })
     },
+
     CloseNewZutat(counter) {
       this.DialogShowZutatliste.splice(counter, 1);
+    },
+
+    filterFn (val, update, abort) {
+      console.log(this.options.length);
+      if (this.options.length != 0) {
+        update()
+        return
+      }
+
+      setTimeout(() => {
+        update(() => {
+          this.loadZutatenOptions()
+        })
+      }, 3000)
+    },
+
+    abortFilterFn () {
+      // console.log('delayed filter aborted')
+    },
+
+    async loadZutatenOptions()
+    {
+      this.options = [];
+      db.collection('Zutaten').orderBy("DisplayName").get().then( zutatObj => {
+        zutatObj.forEach(zutat => {
+          this.options.push(zutat.data().DisplayName);
+        })
+      })
     },
 
     async DialogAdditSaveToDatabase() {
@@ -303,19 +322,18 @@ export default {
             .catch(function (error) {
               console.error("(Zutat)Error adding document: ", error);
             });
-
-
-
           }
         };
 
         console.log("Liste:" + liste);
         console.log("(Rezept) ID:" +this.DialogShowMealObject.Id);
+
+        let imagurUrl = (this.DialogShowMealObject.ImageUrl !== undefined) ? this.DialogShowMealObject.ImageUrl : "";
           if(this.DialogShowMealObject.Id == 0) {
              await db.collection("Rezepte").add({
               DisplayName: this.DialogShowMealObject.DisplayName,
               Zubereitung: this.DialogShowMealObject.Zubereitung,
-              ImageUrl : this.DialogShowMealObject.ImageUrl,
+              ImageUrl : imagurUrl,
               Zutaten: liste
             })
               .then(function (docRef) {
@@ -342,19 +360,24 @@ export default {
               })
           }
 
-          if(isSavedToDatabase === true)
-            this.DialogAdditMeal=false;
+          if(isSavedToDatabase === true) {
+            this.DialogAdditMeal = false;
+            this.LoadMeals();
+          }
           else
             console.log("Couldnt save to DB");
       }
       else
         console.log("Not Validated?");
     },
+
     DialogAdditRemoveMeal() {
       if(this.DialogShowMealObject.Id != 0)
         db.collection("Rezepte").doc(this.DialogShowMealObject.Id).delete();
 
+      this.LoadMeals();
     },
+
     MealClicked(meal) {
       this.DialogShowZutatliste = [];
       this.DialogShowMeal = true;
@@ -385,6 +408,7 @@ export default {
         })
       })
     },
+
     ShowDialog_EditMeal(meal){
       this.DialogShowMeal = false;
       this.DialogAdditMeal = true;
