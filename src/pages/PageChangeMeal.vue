@@ -196,7 +196,7 @@
 
           <q-card-actions align="right">
             <q-btn outline label="Schließen" color="primary" v-close-popup />
-            <q-btn push type="submit" label="Speichern" color="primary" @click="DialogNewIngredientSaveToDatabase()" />
+            <q-btn push label="Speichern" color="primary" @click="DialogNewIngredientSaveToDatabase()" />
           </q-card-actions>
 
         </q-form>
