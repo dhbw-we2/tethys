@@ -18,3 +18,5 @@ individuelle Einkaufsliste erstellt.
 
 #### Mehrwert:
 Einfache, zentrale, intuitive, plattformunabhängige, innovative Einkaufs- und Mahlzeitplanung.
+
+https://meal-o-mat-calendar.web.app
